@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventory - Laporan Masuk</title>
+    <!-- CSS Dependencies -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #06ffa5;
+            --warning-color: #ffbe0b;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-color);
+        }
+
+        /* Card custom styles */
+        .card-custom {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: none;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header-custom {
+            background: white;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body-custom {
+            padding: 25px;
+        }
+
+        /* Table custom styles */
+        .table-custom {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom th {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+        }
+
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button actions */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 5px;
+        }
+
+        .btn-action.edit {
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .btn-action.edit:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner-custom {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Badge styles */
+        .badge {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .bg-warning {
+            background-color: #ffbe0b !important;
+            color: #000;
+        }
+
+        .bg-primary {
+            background-color: #4361ee !important;
+            color: #fff;
+        }
+
+        .bg-success {
+            background-color: #06ffa5 !important;
+            color: #000;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d !important;
+            color: #fff;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .card-header-custom {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-primary">📑 Laporan Masuk</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary btn-sm" onclick="fetchLaporanData()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Search -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0" id="searchInput"
+                        placeholder="Cari laporan (ID, Alat, Pelapor)...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Semua Status</option>
+                    <option value="Waiting">Waiting</option>
+                    <option value="On Process">On Process</option>
+                    <option value="Done">Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-custom">
+            <div class="card-body-custom p-0">
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>ID Transaksi</th>
+                                <th>Tanggal</th>
+                                <th>Nama Alat</th>
+                                <th>Pelapor</th>
+                                <th>Ruangan</th>
+                                <th>Keluhan</th>
+                                <th>Status</th>
+                                <th>Waktu Pengerjaan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="laporanTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" alt="No Data" width="80"
+                        class="mb-3 opacity-50">
+                    <p class="text-muted">Belum ada data laporan masuk.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner-custom"></div>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let allData = [];
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            // Cek session user jika perlu, atau asumsikan halaman ini diproteksi dari index utama
+            // Untuk demo ini kita ambil data langsung
+            fetchLaporanData();
+
+            // Setup listeners
+            document.getElementById('searchInput').addEventListener('input', filterData);
+            document.getElementById('statusFilter').addEventListener('change', filterData);
+        });
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        // Fetch Data from Backend
+        function fetchLaporanData() {
+            showLoading();
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    hideLoading();
+                    allData = data.reverse(); // Newest first
+                    renderTable(allData);
+                    checkLoginStatus(); // Get user role for permission check
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+                })
+                .getLaporanData();
+        }
+
+        // Check Login Status (To determine Admin role)
+        // Kita bisa gunakan sessionStorage dari index.html jika ini dibuka di iframe atau tab baru yang berbagi session
+        // Atau panggil server untuk cek user aktif (jika ada mekanisme session server-side)
+        // Disini kita akan simulasi/ambil dari sessionStorage jika ada
+        function checkLoginStatus() {
+            const userStr = sessionStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                renderTable(allData); // Re-render to show/hide buttons
+            }
+            // Jika tidak ada session (akses langsung), tombol aksi mungkin disembunyikan atau perlu login ulang
+            // Asumsi: Halaman ini diakses oleh admin yang sudah login
+        }
+
+        function isAdmin() {
+            // Fallback true untuk development/demo jika dibuka langsung,
+            // Tapi idealnya cek currentUser.role === 'Admin'
+            if (currentUser && currentUser.role === 'Admin') return true;
+
+            // JIKA testing langsung tanpa login via index.html, uncomment baris bawah:
+            return true;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('laporanTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            data.forEach(item => {
+                let statusBadge = '';
+                if (item.status === 'Waiting') statusBadge = '<span class="badge bg-warning">Waiting</span>';
+                else if (item.status === 'On Process') statusBadge = '<span class="badge bg-primary">On Process</span>';
+                else if (item.status === 'Done') statusBadge = '<span class="badge bg-success">Done</span>';
+                else statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+
+                /* Action Buttons Logic */
+                let actionButtonsHtml = '<div class="d-flex">';
+
+                // Show buttons check
+                if (isAdmin()) {
+                    if (item.status === 'Waiting') {
+                        actionButtonsHtml += `<button class="btn-action edit" onclick="updateStatus('${item.laporanId}', '${item.id}', 'On Process')" title="Approve (Mulai Kerjakan)"><i class="bi bi-play-fill"></i></button>`;
+                    }
+                    if (item.status === 'On Process') {
+                        actionButtonsHtml += `<button class="btn-action edit bg-success text-white" onclick="updateStatus('${item.laporanId}', '${item.id}', 'Done')" title="Selesai"><i class="bi bi-check-lg"></i></button>`;
+                    }
+                }
+
+                actionButtonsHtml += '</div>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="fw-medium">#${item.laporanId}</span></td>
+                    <td>${item.tanggal || '-'}</td>
+                    <td>
+                        <div class="fw-bold">${item.alat}</div>
+                        <small class="text-muted">${item.kode || ''}</small>
+                    </td>
+                    <td>${item.pelapor}</td>
+                    <td>${item.ruangan}</td>
+                    <td>${item.keluhan}</td>
+                    <td>${statusBadge}</td>
+                    <td>${item.waktuPengerjaan || '-'}</td>
+                    <td>${actionButtonsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filtered = allData.filter(item => {
+                const matchesSearch =
+                    (item.laporanId && item.laporanId.toLowerCase().includes(searchTerm)) ||
+                    (item.alat && item.alat.toLowerCase().includes(searchTerm)) ||
+                    (item.pelapor && item.pelapor.toLowerCase().includes(searchTerm)) ||
+                    (item.ruangan && item.ruangan.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = statusFilter === '' || item.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderTable(filtered);
+        }
+
+        function updateStatus(displayId, rowId, newStatus) {
+            let confirmTitle = '';
+            let confirmText = '';
+            let confirmButtonText = '';
+            let confirmButtonColor = '';
+
+            if (newStatus === 'On Process') {
+                confirmTitle = 'Mulai Pengerjaan?';
+                confirmText = `Laporan #${displayId} akan ditandai sedang dikerjakan.`;
+                confirmButtonText = 'Ya, Mulai Service';
+                confirmButtonColor = '#4361ee';
+            } else if (newStatus === 'Done') {
+                confirmTitle = 'Selesaikan Laporan?';
+                confirmText = `Laporan #${displayId} akan ditandai selesai.`;
+                confirmButtonText = 'Ya, Selesai';
+                confirmButtonColor = '#06ffa5';
+            }
+
+            Swal.fire({
+                title: confirmTitle,
+                text: confirmText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: confirmButtonColor,
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    showLoading();
+                    google.script.run
+                        .withSuccessHandler(function (response) {
+                            hideLoading();
+                            if (response.success) {
+                                Swal.fire('Berhasil!', response.message, 'success');
+                                fetchLaporanData(); // Reload data
+                            } else {
+                                Swal.fire('Gagal!', response.message, 'error');
+                            }
+                        })
+                        .withFailureHandler(function (error) {
+                            hideLoading();
+                            Swal.fire('Error', error.message, 'error');
+                        })
+                        .updateLaporanStatus(rowId, newStatus);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

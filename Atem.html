@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventory - ATEM</title>
+    <!-- CSS Dependencies -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #06ffa5;
+            --warning-color: #ffbe0b;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-color);
+        }
+
+        /* Card custom styles */
+        .card-custom {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: none;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header-custom {
+            background: white;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body-custom {
+            padding: 25px;
+        }
+
+        /* Table custom styles */
+        .table-custom {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom th {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+        }
+
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button actions */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 5px;
+        }
+
+        .btn-action.edit {
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .btn-action.edit:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner-custom {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Badge styles */
+        .badge {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .bg-warning {
+            background-color: #ffbe0b !important;
+            color: #000;
+        }
+
+        .bg-primary {
+            background-color: #4361ee !important;
+            color: #fff;
+        }
+
+        .bg-success {
+            background-color: #06ffa5 !important;
+            color: #000;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d !important;
+            color: #fff;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .card-header-custom {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-primary">👷 Laporan Masuk (ATEM)</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary btn-sm" onclick="fetchLaporanData()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0" id="searchInput"
+                        placeholder="Cari laporan (ID, Alat, Pelapor)...">
+                </div>
+            </div>
+            <!-- Status Filter Removed - Only On Process shown -->
+        </div>
+
+        <div class="card-custom">
+            <div class="card-body-custom p-0">
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>ID Transaksi</th>
+                                <th>Tanggal</th>
+                                <th>Nama Alat</th>
+                                <th>Pelapor</th>
+                                <th>Ruangan</th>
+                                <th>Keluhan</th>
+                                <th>Status</th>
+                                <th>Waktu Pengerjaan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="laporanTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" alt="No Data" width="80"
+                        class="mb-3 opacity-50">
+                    <p class="text-muted">Tidak ada laporan yang sedang diproses (On Process).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATE MODAL -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Update Laporan #<span id="modalLaporanId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <input type="hidden" id="modalRowId">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Identifikasi Masalah</label>
+                            <textarea class="form-control" id="modalIdentifikasi" rows="3"
+                                placeholder="Jelaskan hasil identifikasi..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Tindakan</label>
+                            <textarea class="form-control" id="modalTindakan" rows="3"
+                                placeholder="Tindakan yang dilakukan..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-medium">Rekomendasi</label>
+                                <textarea class="form-control" id="modalRekomendasi" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-medium">Catatan</label>
+                                <textarea class="form-control" id="modalCatatan" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3 p-3 bg-light rounded border">
+                            <input class="form-check-input" type="checkbox" id="modalMarkAsDone">
+                            <label class="form-check-label fw-bold text-success" for="modalMarkAsDone">
+                                Tandai Pekerjaan Selesai (Status: Done)
+                            </label>
+                            <div class="form-text">Centang ini jika perbaikan/tindakan telah selesai sepenuhnya.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="submitUpdate()">Simpan Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner-custom"></div>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let allData = [];
+        let updateModal;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchLaporanData();
+
+            // Setup listeners
+            document.getElementById('searchInput').addEventListener('input', filterData);
+
+            // Initialize Modal
+            updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+        });
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        // Fetch Data from Backend
+        function fetchLaporanData() {
+            showLoading();
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    hideLoading();
+                    allData = data.reverse(); // Newest first
+                    renderTable(allData);
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+                })
+                .getLaporanData();
+        }
+
+        // Main Render Function - Filters for On Process ONLY
+        function renderTable(data) {
+            const tbody = document.getElementById('laporanTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            // FILTER UTAMA: Hanya tampilkan yang Status = 'On Process'
+            const filteredData = data.filter(item => item.status === 'On Process');
+
+            if (filteredData.length === 0) {
+                emptyState.style.display = 'block';
+                // Update text to be specific
+                emptyState.querySelector('p').innerText = "Tidak ada laporan yang sedang diproses (On Process).";
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            filteredData.forEach(item => {
+                let statusBadge = '<span class="badge bg-primary">On Process</span>';
+
+                // Escape strings safely
+                const identifikasi = (item.identifikasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const tindakan = (item.tindakan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const rekomendasi = (item.rekomendasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const catatan = (item.catatan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+                let actionButtonsHtml = '<div class="d-flex">';
+                // Tombol Update (Pencil) membuka modal
+                actionButtonsHtml += `<button class="btn-action edit" onclick="openUpdateModal('${item.id}', '${item.laporanId}', '${identifikasi}', '${tindakan}', '${rekomendasi}', '${catatan}')" title="Update Pekerjaan"><i class="bi bi-pencil-square"></i></button>`;
+                actionButtonsHtml += '</div>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="fw-medium">#${item.laporanId}</span></td>
+                    <td>${item.tanggal || '-'}</td>
+                    <td>
+                        <div class="fw-bold">${item.alat}</div>
+                        <small class="text-muted">${item.kode || ''}</small>
+                    </td>
+                    <td>${item.pelapor}</td>
+                    <td>${item.ruangan}</td>
+                    <td>${item.keluhan}</td>
+                    <td>${statusBadge}</td>
+                    <td>${item.waktuPengerjaan || '-'}</td>
+                    <td>${actionButtonsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter dari allData, tapi pastikan status tetap harus 'On Process'
+            const filtered = allData.filter(item => {
+                // Syarat mutlak: Status harus On Process
+                if (item.status !== 'On Process') return false;
+
+                const matchesSearch =
+                    (item.laporanId && item.laporanId.toLowerCase().includes(searchTerm)) ||
+                    (item.alat && item.alat.toLowerCase().includes(searchTerm)) ||
+                    (item.pelapor && item.pelapor.toLowerCase().includes(searchTerm)) ||
+                    (item.ruangan && item.ruangan.toLowerCase().includes(searchTerm));
+
+                return matchesSearch;
+            });
+
+            // Render hasil filter
+            renderTable(filtered);
+        }
+
+        // Modal Logic
+        function openUpdateModal(id, laporanId, identifikasi, tindakan, rekomendasi, catatan) {
+            document.getElementById('modalRowId').value = id;
+            document.getElementById('modalLaporanId').innerText = laporanId;
+            document.getElementById('modalIdentifikasi').value = identifikasi;
+            document.getElementById('modalTindakan').value = tindakan;
+            document.getElementById('modalRekomendasi').value = rekomendasi;
+            document.getElementById('modalCatatan').value = catatan;
+            document.getElementById('modalMarkAsDone').checked = false; // Reset checkbox
+
+            updateModal.show();
+        }
+
+        function submitUpdate() {
+            const id = document.getElementById('modalRowId').value;
+            const details = {
+                identifikasi: document.getElementById('modalIdentifikasi').value,
+                tindakan: document.getElementById('modalTindakan').value,
+                rekomendasi: document.getElementById('modalRekomendasi').value,
+                catatan: document.getElementById('modalCatatan').value,
+                markAsDone: document.getElementById('modalMarkAsDone').checked
+            };
+
+            // Validasi sederhana jika ingin done
+            if (details.markAsDone && !details.tindakan) {
+                Swal.fire('Peringatan', 'Mohon isi tindakan yang dilakukan sebelum menyelesaikan pekerjaan.', 'warning');
+                return;
+            }
+
+            showLoading();
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    hideLoading();
+                    if (response.success) {
+                        updateModal.hide();
+                        // Tampilkan pesan sukses dan reload
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            fetchLaporanData();
+                        });
+                    } else {
+                        Swal.fire('Gagal!', response.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', error.message, 'error');
+                })
+                .updateLaporanDetails(id, details);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,4427 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/locale/id.js"></script>
+
+    <style>
+        .controls-container .input-group {
+            align-items: center;
+            /* Membantu menyelaraskan item di dalam grup input */
+        }
+
+        .controls-container .input-group .form-control-custom,
+        .controls-container .input-group .input-group-text {
+            height: 38px;
+            /* Atur tinggi yang sama untuk input dan teks ikon */
+            padding-top: 0;
+            padding-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #06ffa5;
+            --warning-color: #ffbe0b;
+            --danger-color: #fb5607;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* LOGIN CONTAINER & CARD STYLES */
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 400px;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .login-body {
+            padding: 30px;
+        }
+
+        /* LOGIN FORM STYLES - CLEAN & INTEGRATED */
+        .login-body .form-group-custom {
+            margin-bottom: 20px;
+        }
+
+        .login-body .form-group-custom label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--dark-color);
+        }
+
+        /* Style untuk seluruh grup input (ikon + kolom) */
+        .login-body .input-group {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Style untuk ikon di dalam grup input */
+        .login-body .input-group-text {
+            background-color: transparent;
+            border: none;
+            color: #6c757d;
+            padding: 12px 15px;
+            transition: color 0.3s ease;
+        }
+
+        /* Style untuk kolom input */
+        .login-body .form-control-custom {
+            border: none;
+            border-radius: 0;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+            /* KUNCI INI: Memastikan input mengisi sisa ruang */
+        }
+
+        /* LOGIN FORM STYLES - CLEAN FOCUS EFFECT */
+        /* Efek fokus: seluruh kotak mendapat bayangan biru halus */
+        .login-body .input-group:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+        /* Hapus semua efek fokus individual dari input agar tetap polos */
+        .login-body .form-control-custom:focus {
+            outline: none;
+            box-shadow: none;
+            background-color: transparent;
+        }
+
+        /* Main App Styles (Hidden by default) */
+        .main-app {
+            display: none;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            z-index: 1000;
+            transition: all 0.3s ease;
+
+            /* --- KODE PENTING UNTUK SCROLLING --- */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+            /* --- KODE PENTING UNTUK SCROLLING --- */
+            flex-shrink: 0;
+            /* Mencegah header mengecil */
+        }
+
+        .sidebar-header h2 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .sidebar-header .logo {
+            font-size: 40px;
+            color: white;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+
+            /* --- KODE PENTING UNTUK SCROLLING --- */
+            flex-grow: 1;
+            /* Memenuhi sisa ruang vertikal */
+            overflow-y: auto;
+            /* Menambahkan scroll vertikal jika konten terlalu panjang */
+        }
+
+        .menu-item {
+            display: block;
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: white;
+        }
+
+        .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+            /* --- KODE PENTING UNTUK SCROLLING --- */
+            flex-shrink: 0;
+            /* Mencegah footer mengecil */
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .user-details h5 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .top-bar {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-custom {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary-custom {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-secondary-custom:hover {
+            background-color: #e9ecef;
+        }
+
+        .card-custom {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            border: none;
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background-color: white;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body-custom {
+            padding: 25px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .summary-card .icon {
+            font-size: 36px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .summary-card h3 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-top: 1px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table-custom thead th:first-child {
+            border-left: 1px solid #e9ecef;
+            border-top-left-radius: 10px;
+        }
+
+        .table-custom thead th:last-child {
+            border-right: 1px solid #e9ecef;
+            border-top-right-radius: 10px;
+        }
+
+        .table-custom tbody td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .table-custom tbody tr:last-child td {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table-custom tbody tr:last-child td:first-child {
+            border-left: 1px solid #e9ecef;
+            border-bottom-left-radius: 10px;
+        }
+
+        .table-custom tbody tr:last-child td:last-child {
+            border-right: 1px solid #e9ecef;
+            border-bottom-right-radius: 10px;
+        }
+
+        .form-group-custom {
+            margin-bottom: 20px;
+        }
+
+        .form-group-custom label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--dark-color);
+        }
+
+        .form-control-custom {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+        .modal-content-custom {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px 25px;
+            border: none;
+        }
+
+        .modal-title-custom {
+            font-weight: 600;
+        }
+
+        .modal-body-custom {
+            padding: 25px;
+        }
+
+        .modal-footer-custom {
+            padding: 20px 25px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .filter-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-section .row {
+            align-items: end;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner-custom {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast-custom {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-custom.success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-custom.error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .toast-custom.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .toast-custom.info {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .toast-icon {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .toast-custom.success .toast-icon {
+            color: var(--success-color);
+        }
+
+        .toast-custom.error .toast-icon {
+            color: var(--danger-color);
+        }
+
+        .toast-custom.warning .toast-icon {
+            color: var(--warning-color);
+        }
+
+        .toast-custom.info .toast-icon {
+            color: var(--primary-color);
+        }
+
+        .toast-content {
+            flex-grow: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action.view {
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .btn-action.edit {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .btn-action.delete {
+            background-color: #ffebee;
+            color: #f44336;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            /* Responsive Adjustments for Mobile */
+            .controls-container {
+                flex-direction: column;
+            }
+
+            .controls-container>div {
+                width: 100%;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+
+            .card-header-custom {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .action-buttons-container {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .action-buttons-container button {
+                flex: 1 1 auto;
+                /* Tombol akan mengisi ruang yang tersedia */
+                font-size: 13px;
+            }
+
+            /* Make modals responsive */
+            .login-card {
+                width: 100% !important;
+                margin: 10px;
+            }
+        }
+
+        @media (min-width: 993px) {
+            .mobile-menu-toggle {
+                display: none;
+            }
+        }
+
+        .btn-info-custom {
+            background-color: #17a2b8;
+            /* Warna biru info */
+            color: white;
+        }
+
+        .btn-info-custom:hover {
+            background-color: #138496;
+            transform: translateY(-2px);
+        }
+
+        /* Untuk tombol yang lebih kecil di dalam card header */
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .pagination-controls .pagination {
+            margin: 0;
+        }
+
+        .pagination-controls .page-link {
+            color: var(--primary-color);
+            border-color: #dee2e6;
+            padding: 8px 12px;
+        }
+
+        .pagination-controls .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .pagination-controls .page-link:hover {
+            color: var(--secondary-color);
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .rows-per-page-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .rows-per-page-selector select {
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            padding: 5px 10px;
+        }
+
+        .form-container {
+            transition: all 0.3s ease;
+        }
+
+        .form-container .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-buttons-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-success-custom {
+            background-color: #28a745;
+            /* Warna hijau standar Bootstrap */
+            color: white;
+            border: none;
+        }
+
+        .btn-success-custom:hover {
+            background-color: #218838;
+            /* Warna hijau lebih gelap saat hover */
+            transform: translateY(-2px);
+        }
+
+        /* Tombol Berwarna Merah (Danger) untuk Print PDF */
+        .btn-danger-custom {
+            background-color: #dc3545;
+            /* Warna merah standar Bootstrap */
+            color: white;
+            border: none;
+        }
+
+        .btn-danger-custom:hover {
+            background-color: #c82333;
+            /* Warna merah lebih gelap saat hover */
+            transform: translateY(-2px);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.5.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <!-- LOGIN VIEW -->
+    <div class="login-container" id="loginView">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="bi bi-box-seam" style="font-size: 48px;"></i>
+                <h1>Sistem Inventory</h1>
+                <p>Silakan login untuk mengakses sistem</p>
+            </div>
+            <div class="login-body">
+                <div id="alertMessage" class="alert alert-danger" role="alert" style="display: none;"></div>
+
+                <form id="loginForm">
+                    <div class="form-group-custom">
+                        <label for="username">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control-custom" id="username" placeholder="Masukkan username"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="password">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control-custom" id="password"
+                                placeholder="Masukkan password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p>Belum punya akun? <a href="#" id="setupAdmin">Setup Admin</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PUBLIC REPORT VIEW -->
+    <div class="login-container" id="publicReportView" style="display: none;">
+        <div class="login-card" style="width: 500px; max-width: 95%;">
+            <div class="login-header">
+                <h1>Form Laporan</h1>
+                <p>Laporkan kerusakan atau masalah alat</p>
+            </div>
+            <div class="login-body">
+                <form id="publicReportForm">
+                    <div class="form-group-custom">
+                        <label>Nama Pelapor</label>
+                        <input type="text" class="form-control-custom" id="reportPelapor" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Ruangan</label>
+                        <input type="text" class="form-control-custom" id="reportRuangan" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Kode Alat (Opsional)</label>
+                        <input type="text" class="form-control-custom" id="reportKode">
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Nama Alat</label>
+                        <input type="text" class="form-control-custom" id="reportAlat" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Keluhan / Masalah</label>
+                        <textarea class="form-control-custom" id="reportKeluhan" rows="3" required
+                            style="height: auto;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 py-2 mt-3">Kirim Laporan</button>
+                    <div class="text-center mt-3">
+                        <a href="#" id="backToLoginBtn" style="text-decoration: none; font-size: 14px;">Kembali ke
+                            Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP VIEW (Hidden by default) -->
+    <div class="main-app" id="mainAppView">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h2>Sistem Inventory</h2>
+            </div>
+
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-page="dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="menu-item" data-page="inventory">
+                    <i class="bi bi-boxes"></i>
+                    Master Alat
+                </a>
+                <a href="#" class="menu-item" data-page="alatMasuk">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                    Alat Masuk
+                </a>
+                <a href="#" class="menu-item" data-page="alatKeluar">
+                    <i class="bi bi-box-arrow-up"></i>
+                    Alat Keluar
+                </a>
+                <a href="#" class="menu-item" data-page="laporanMasuk">
+                    <i class="bi bi-exclamation-circle"></i>
+                    Laporan Masuk
+                </a>
+                <a href="#" class="menu-item" data-page="supplier">
+                    <i class="bi bi-truck"></i>
+                    Supplier
+                </a>
+                <a href="#" class="menu-item" data-page="kategori">
+                    <i class="bi bi-tags"></i>
+                    Kategori Alat
+                </a>
+                <a href="#" class="menu-item" data-page="user">
+                    <i class="bi bi-people"></i>
+                    User
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="user-details">
+                        <h5 id="userName">User Name</h5>
+                        <p id="userRole">User Role</p>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-light mt-3 w-100" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-secondary-custom mobile-menu-toggle me-3" id="menuToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div id="pageContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner-custom"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global variables
+        let pageCache = {};
+        let currentUser = null;
+        let currentPage = 'dashboard';
+        let charts = {};
+        let dropdownData = {};
+        let currentRequestId = null;
+        let currentSearchRequestId = null;
+        let isSearchActive = false;
+
+        let paginationState = {
+            currentPage: 1,
+            rowsPerPage: 10,
+            totalItems: 0,
+            allData: [], // Menyimpan semua data dari server
+            config: {}   // Menyimpan konfigurasi khusus untuk setiap halaman
+        };
+
+        let chartDataCache = {
+            transaction: {},
+            category: {},
+            supplier: {}
+        };
+
+        // --- HAK AKSES: FUNGSI PEMBANTU ---
+        function isAdmin() {
+            // Pastikan currentUser ada dan rolenya adalah 'Admin'
+            return currentUser && currentUser.role === 'Admin';
+        }
+
+        // Fungsi untuk retry panggilan yang gagal
+        function retryGoogleScriptCall(funcName, maxRetries = 3, delay = 1000) {
+            return new Promise((resolve, reject) => {
+                let retries = 0;
+
+                function attemptCall() {
+                    retries++;
+
+                    // Tampilkan loading
+                    if (retries === 1) {
+                        showLoading();
+                    }
+
+                    google.script.run
+                        .withSuccessHandler(function (result) {
+                            hideLoading();
+                            resolve(result);
+                        })
+                        .withFailureHandler(function (error) {
+                            console.warn(`Attempt ${retries} failed for ${funcName}:`, error);
+
+                            if (retries < maxRetries) {
+                                // Tunggu dengan exponential backoff
+                                const waitTime = delay * Math.pow(2, retries - 1);
+                                console.log(`Retrying ${funcName} in ${waitTime}ms...`);
+                                setTimeout(attemptCall, waitTime);
+                            } else {
+                                hideLoading();
+                                showToast('error', 'Error', `Gagal memuat data setelah ${maxRetries} percobaan. Silakan coba lagi.`);
+                                reject(error);
+                            }
+                        })
+                    [funcName](...Array.from(arguments).slice(1));
+                }
+
+                attemptCall();
+            });
+        }
+
+        // Fungsi untuk menyimpan cache
+        function setChartDataCache(chartType, filterType, data) {
+            if (!chartDataCache[chartType]) {
+                chartDataCache[chartType] = {};
+            }
+            chartDataCache[chartType][filterType] = {
+                data: data,
+                timestamp: Date.now()
+            };
+        }
+
+        // Fungsi untuk mengambil cache
+        function getChartDataCache(chartType, filterType, maxAge = 300000) { // 5 menit
+            if (chartDataCache[chartType] && chartDataCache[chartType][filterType]) {
+                const cached = chartDataCache[chartType][filterType];
+                if (Date.now() - cached.timestamp < maxAge) {
+                    return cached.data;
+                }
+            }
+            return null;
+        }
+
+        function debounce(func, delay) {
+            let timeoutId;
+            return function () {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if user is already logged in
+            const userStr = sessionStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                showMainApp();
+            } else {
+                showLoginView();
+            }
+
+            // Initialize sheets
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (!response.success) {
+                        showAlert(response.message, 'warning');
+                    }
+                })
+                .initializeSheets();
+
+            // Handling URL parameters for routing
+            google.script.url.getLocation(function (location) {
+                if (location.parameter && location.parameter.page === 'laporan') {
+                    // Tampilkan form laporan publik dan sembunyikan login
+                    document.getElementById('loginView').style.display = 'none';
+                    document.getElementById('mainAppView').style.display = 'none';
+                    document.getElementById('publicReportView').style.display = 'flex';
+                }
+            });
+
+            // Setup public report listeners
+            setupPublicReportListeners();
+        });
+
+        // Show login view
+        function showLoginView() {
+            document.getElementById('loginView').style.display = 'flex';
+            document.getElementById('mainAppView').style.display = 'none';
+            setupLoginEventListeners();
+        }
+
+        // Show main app
+        function showMainApp() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('mainAppView').style.display = 'block';
+
+            // Update user info
+            document.getElementById('userName').textContent = currentUser.fullName;
+            document.getElementById('userRole').textContent = currentUser.role;
+
+            // --- HAK AKSES: Sembunyikan menu User untuk Manager ---
+            const userMenu = document.querySelector('.menu-item[data-page="user"]');
+            if (userMenu) {
+                if (!isAdmin()) {
+                    userMenu.style.display = 'none'; // Sembunyikan menu
+                } else {
+                    userMenu.style.display = 'block'; // Tampilkan menu (default)
+                }
+            }
+
+            // Load dropdown data
+            loadDropdownData();
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector('.menu-item[data-page="dashboard"]').classList.add('active');
+
+            // Load initial page
+            loadPage('dashboard');
+
+            // Setup main app event listeners
+            setupMainAppEventListeners();
+        }
+
+        // Setup login event listeners
+        function setupLoginEventListeners() {
+            const loginForm = document.getElementById('loginForm');
+            const setupAdminLink = document.getElementById('setupAdmin');
+
+            loginForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                showLoading();
+
+                google.script.run
+                    .withSuccessHandler(function (response) {
+                        hideLoading();
+
+                        if (response.success) {
+                            sessionStorage.setItem('user', JSON.stringify(response));
+                            currentUser = response;
+                            showMainApp();
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        hideLoading();
+                        showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+                    })
+                    .authenticateUser(username, password);
+            });
+
+            setupAdminLink.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                showLoading();
+
+                google.script.run
+                    .withSuccessHandler(function (response) {
+                        hideLoading();
+
+                        if (response.success) {
+                            showAlert('Admin berhasil dibuat. Username: admin, Password: admin123', 'success');
+                        } else {
+                            showAlert(response.message, 'warning');
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        hideLoading();
+                        showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+                    })
+                    .setupFirstAdmin();
+            });
+        }
+
+        function setupPublicReportListeners() {
+            const reportForm = document.getElementById('publicReportForm');
+            const backBtn = document.getElementById('backToLoginBtn');
+
+            backBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showLoginView();
+                document.getElementById('publicReportView').style.display = 'none';
+            });
+
+            reportForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const laporan = {
+                    pelapor: document.getElementById('reportPelapor').value,
+                    ruangan: document.getElementById('reportRuangan').value,
+                    kode: document.getElementById('reportKode').value,
+                    alat: document.getElementById('reportAlat').value,
+                    keluhan: document.getElementById('reportKeluhan').value
+                };
+
+                showLoading();
+                google.script.run
+                    .withSuccessHandler(function (response) {
+                        hideLoading();
+                        if (response.success) {
+                            showToast('success', 'Terkirim', response.message);
+                            reportForm.reset();
+                        } else {
+                            showToast('error', 'Gagal', response.message);
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        hideLoading();
+                        showToast('error', 'Error', error.message);
+                    })
+                    .addLaporan(laporan);
+            });
+        }
+
+        function setupMainAppEventListeners() {
+            // Menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    hideLoading(); // PERBAIKAN 3: Sembunyikan loading saat navigasi
+                    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    const page = this.getAttribute('data-page');
+                    loadPage(page);
+                });
+            });
+
+            // Mobile menu toggle
+            document.getElementById('menuToggle').addEventListener('click', function () {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function () {
+                sessionStorage.removeItem('user');
+                currentUser = null;
+                currentPage = 'dashboard';
+                showLoginView();
+            });
+        }
+
+        // Load dropdown data
+        function loadDropdownData() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    dropdownData = data;
+                })
+                .getDropdownData();
+        }
+
+        function loadPage(page) {
+            currentPage = page;
+
+            // Hancurkan semua chart yang ada
+            Object.keys(charts).forEach(key => {
+                if (charts[key]) {
+                    try {
+                        charts[key].destroy();
+                    } catch (e) {
+                        console.warn(`Error destroying ${key} chart:`, e);
+                    }
+                    charts[key] = null;
+                }
+            });
+
+            // Ganti canvas sepenuhnya
+            replaceCanvas('transactionChart');
+            replaceCanvas('categoryChart');
+
+            // Perbarui menu aktif
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.menu-item[data-page="${page}"]`).classList.add('active');
+
+            // Perbarui judul halaman
+            const titles = {
+                dashboard: 'Dashboard',
+                inventory: 'Inventory/Master Alat',
+                alatMasuk: 'Alat Masuk',
+                alatKeluar: 'Alat Keluar',
+                laporanMasuk: 'Laporan Masuk',
+                supplier: 'Supplier',
+                kategori: 'Kategori Alat',
+                user: 'User'
+            };
+            document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+
+            // --- LOGIKA CACHE BARU ---
+            if (pageCache[page]) {
+                // Jika data ada di cache, tampilkan secara instan
+                console.log(`Loading ${page} from cache...`);
+                switch (page) {
+                    case 'dashboard': renderDashboardPage(pageCache[page]); break;
+                    case 'inventory': renderInventoryPage(pageCache[page]); break;
+                    case 'alatMasuk': renderAlatMasukPage(pageCache[page]); break;
+                    case 'alatKeluar': renderAlatKeluarPage(pageCache[page]); break;
+                    case 'laporanMasuk': renderLaporanPage(pageCache[page]); break;
+                    case 'supplier': renderSupplierPage(pageCache[page]); break;
+                    case 'kategori': renderKategoriPage(pageCache[page]); break;
+                    case 'user': renderUserPage(pageCache[page]); break;
+                    default: fetchDashboardData();
+                }
+            } else {
+                // Jika data belum ada di cache, ambil dari server
+                console.log(`Fetching ${page} from server...`);
+                switch (page) {
+                    case 'dashboard': fetchDashboardData(); break;
+                    case 'inventory': fetchInventoryData(); break;
+                    case 'alatMasuk': fetchAlatMasukData(); break;
+                    case 'alatKeluar': fetchAlatKeluarData(); break;
+                    case 'laporanMasuk': fetchLaporanMasukData(); break;
+                    case 'supplier': fetchSupplierData(); break;
+                    case 'kategori': fetchKategoriData(); break;
+                    case 'user': fetchUserData(); break;
+                    default: fetchDashboardData();
+                }
+            }
+        }
+
+        function fetchDashboardData() {
+            showLoading();
+            const requestId = Date.now();
+            currentRequestId = requestId;
+
+            google.script.run
+                .withSuccessHandler(function (summary) {
+                    if (requestId !== currentRequestId) return;
+
+                    google.script.run
+                        .withSuccessHandler(function (inventorySummary) {
+                            if (requestId !== currentRequestId) return;
+
+                            google.script.run
+                                .withSuccessHandler(function (ringkasanKeuntungan) {
+                                    if (requestId !== currentRequestId) return;
+
+                                    const combinedData = { ...summary, ...inventorySummary, ...ringkasanKeuntungan };
+                                    pageCache.dashboard = combinedData;
+                                    renderDashboardPage(pageCache.dashboard);
+                                    hideLoading();
+                                })
+                                .withFailureHandler(function (error) {
+                                    if (requestId !== currentRequestId) return;
+                                    hideLoading();
+                                    showToast('error', 'Error', 'Gagal memuat ringkasan keuntungan: ' + error.message);
+                                })
+                                .getRingkasanKeuntungan();
+                        })
+                        .withFailureHandler(function (error) {
+                            if (requestId !== currentRequestId) return;
+                            hideLoading();
+                            showToast('error', 'Error', 'Gagal memuat ringkasan inventaris: ' + error.message);
+                        })
+                        .getInventorySummary();
+                })
+                .withFailureHandler(function (error) {
+                    if (requestId !== currentRequestId) return;
+                    hideLoading();
+                    showToast('error', 'Error', 'Gagal memuat ringkasan dashboard: ' + error.message);
+                })
+                .getSummaryData('', '', '');
+        }
+
+        function renderDashboardPage(summary) {
+            let html = `
+      <div class="row">
+        <div class="col-md-3 col-sm-6">
+          <div class="summary-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+            <div class="icon"><i class="bi bi-boxes"></i></div>
+            <h3>${summary.totalItems}</h3>
+            <p>Total Jenis Alat</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="summary-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+            <div class="icon"><i class="bi bi-stack"></i></div>
+            <h3>${summary.totalStock}</h3>
+            <p>Total Stok Alat</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="summary-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+            <div class="icon"><i class="bi bi-arrow-down-circle"></i></div>
+            <h3>${summary.totalIn}</h3>
+            <p>Alat Masuk</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="summary-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+            <div class="icon"><i class="bi bi-arrow-up-circle"></i></div>
+            <h3>${summary.totalOut}</h3>
+            <p>Alat Keluar</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="summary-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+            <div class="icon"><i class="bi bi-cash-stack"></i></div>
+            <h3>Rp ${summary.totalNilaiBeli.toLocaleString('id-ID')}</h3>
+            <p>Total Nilai (Harga Beli)</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="summary-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+            <div class="icon"><i class="bi bi-currency-exchange"></i></div>
+            <h3>Rp ${summary.totalNilaiJual.toLocaleString('id-ID')}</h3>
+            <p>Total Nilai (Harga Jual)</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="summary-card" style="background: linear-gradient(135deg, #56ab2f, #a8e063);">
+            <div class="icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <h3>Rp ${summary.totalKeuntungan.toLocaleString('id-ID')}</h3>
+            <p>Total Keuntungan</p>
+          </div>
+        </div>
+      </div>
+      
+     <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="card-header-custom">
+          <h5>Filter Transaksi</h5>
+          <div class="d-flex gap-2">
+            <select class="form-select" id="transactionFilterType" style="width: auto;">
+              <option value="daily">Harian</option>
+              <option value="weekly">Mingguan</option>
+              <option value="monthly" selected>Bulanan</option>
+              <option value="yearly">Tahunan</option>
+            </select>
+            <button class="btn btn-primary-custom btn-sm" id="applyTransactionFilter">
+              <i class="bi bi-funnel me-1"></i>Terapkan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-custom">
+        <div class="card-header-custom">
+          <h5>Filter Kategori</h5>
+          <div class="d-flex gap-2">
+            <select class="form-select" id="categoryFilterType" style="width: auto;">
+              <option value="all">Semua Kategori</option>
+              <option value="top">Top 10 Kategori</option>
+              <option value="low">Bottom 10 Kategori</option>
+            </select>
+            <button class="btn btn-primary-custom btn-sm" id="applyCategoryFilter">
+              <i class="bi bi-funnel me-1"></i>Terapkan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+      
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <div class="card-custom">
+            <div class="card-header-custom"><h5>Grafik Transaksi</h5></div>
+            <div class="card-body-custom">
+              <div class="chart-container"><canvas id="transactionChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-custom">
+            <div class="card-header-custom"><h5>Grafik Kategori</h5></div>
+            <div class="card-body-custom">
+              <div class="chart-container"><canvas id="categoryChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card-custom">
+            <div class="card-header-custom"><h5>Top 5 Alat</h5></div>
+            <div class="card-body-custom">
+              <table class="table-custom">
+                <thead><tr><th>Kode</th><th>Nama</th><th>Masuk</th><th>Keluar</th><th>Total</th></tr></thead>
+                <tbody>
+        `;
+
+            for (const item of summary.topItems) {
+                html += `<tr><td>${item.code}</td><td>${item.name}</td><td>${item.in}</td><td>${item.out}</td><td>${item.total}</td></tr>`;
+            }
+
+            html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-custom">
+            <div class="card-header-custom"><h5>Top 5 Supplier</h5></div>
+            <div class="card-body-custom">
+              <table class="table-custom">
+                <thead><tr><th>Nama Supplier</th><th>Transaksi</th></tr></thead>
+                <tbody>
+        `;
+
+            for (const supplier of summary.topSuppliers) {
+                html += `<tr><td>${supplier.name}</td><td>${supplier.transactions}</td></tr>`;
+            }
+
+            html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+            document.getElementById('pageContent').innerHTML = html;
+            setTimeout(() => {
+                setupDashboardCharts();
+            }, 500);
+            loadTransactionChart();
+            loadCategoryChart();
+        }
+
+        function setupDashboardCharts() {
+            // Dapatkan elemen-elemen filter
+            const applyTransactionFilterBtn = document.getElementById('applyTransactionFilter');
+            const transactionFilterTypeSelect = document.getElementById('transactionFilterType');
+            const applyCategoryFilterBtn = document.getElementById('applyCategoryFilter');
+            const categoryFilterTypeSelect = document.getElementById('categoryFilterType');
+
+            // Event listener untuk filter grafik transaksi
+            if (applyTransactionFilterBtn && transactionFilterTypeSelect) {
+                applyTransactionFilterBtn.addEventListener('click', function () {
+                    const filterType = transactionFilterTypeSelect.value;
+                    console.log('Applying transaction filter:', filterType);
+                    loadTransactionChartWithFilter(filterType);
+                });
+            } else {
+                console.warn('Transaction filter elements not found!');
+            }
+
+            // Event listener untuk filter grafik kategori
+            if (applyCategoryFilterBtn && categoryFilterTypeSelect) {
+                applyCategoryFilterBtn.addEventListener('click', function () {
+                    const filterType = categoryFilterTypeSelect.value;
+                    console.log('Applying category filter:', filterType);
+                    loadCategoryChartWithFilter(filterType);
+                });
+            } else {
+                console.warn('Category filter elements not found!');
+            }
+
+            // Muat grafik awal dengan jeda untuk menghindari error
+            try {
+                console.log('Loading initial charts...');
+                loadTransactionChart();
+
+                // Muat grafik kategori dengan sedikit jeda
+                setTimeout(() => {
+                    loadCategoryChart();
+                }, 500);
+            } catch (error) {
+                console.error("Error loading charts:", error);
+                showToast('error', 'Error', 'Gagal memuat grafik: ' + error.message);
+            }
+        }
+
+        function safeDestroyChart(chartName) {
+            if (charts[chartName]) {
+                try {
+                    charts[chartName].destroy();
+                    charts[chartName] = null;
+                } catch (e) {
+                    console.warn(`Error destroying ${chartName} chart:`, e);
+                    charts[chartName] = null;
+                }
+            }
+
+            // Coba hancurkan semua chart yang mungkin terkait dengan canvas
+            try {
+                Object.keys(Chart.instances).forEach(instanceId => {
+                    const instance = Chart.instances[instanceId];
+                    if (instance && instance.canvas && instance.canvas.id === chartName + 'Chart') {
+                        instance.destroy();
+                    }
+                });
+            } catch (e) {
+                console.warn(`Error cleaning up chart instances:`, e);
+            }
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                try {
+                    // Hancurkan semua chart yang terkait dengan canvas ini
+                    Object.keys(Chart.instances).forEach(instanceId => {
+                        const instance = Chart.instances[instanceId];
+                        if (instance && instance.canvas && instance.canvas.id === canvasId) {
+                            instance.destroy();
+                        }
+                    });
+
+                    // Bersihkan canvas
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Reset canvas width dan height untuk memastikan benar-benar bersih
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Hapus semua event listener dengan mengganti canvas
+                    const newCanvas = canvas.cloneNode(true);
+                    canvas.parentNode.replaceChild(newCanvas, canvas);
+                } catch (e) {
+                    console.warn(`Error clearing canvas ${canvasId}:`, e);
+                }
+            }
+        }
+
+        function replaceCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+
+            try {
+                // Hancurkan semua chart yang terkait dengan canvas ini
+                Object.keys(Chart.instances).forEach(instanceId => {
+                    const instance = Chart.instances[instanceId];
+                    if (instance && instance.canvas && instance.canvas.id === canvasId) {
+                        instance.destroy();
+                    }
+                });
+
+                // Buat canvas baru
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = canvasId;
+                newCanvas.className = canvas.className;
+                newCanvas.style.width = canvas.style.width;
+                newCanvas.style.height = canvas.style.height;
+
+                // Ganti canvas lama dengan yang baru
+                canvas.parentNode.replaceChild(newCanvas, canvas);
+
+                return newCanvas;
+            } catch (e) {
+                console.warn(`Error replacing canvas ${canvasId}:`, e);
+                return canvas;
+            }
+        }
+
+        function loadTransactionChart() {
+            // Untuk pemuatan awal, gunakan filter default 'daily'
+            loadTransactionChartWithFilter('daily');
+        }
+
+        function loadCategoryChart() {
+            // Untuk pemuatan awal, gunakan filter default 'all'
+            loadCategoryChartWithFilter('all');
+        }
+
+
+        function loadTransactionChartWithFilter(filterType) {
+            const canvasId = 'transactionChart';
+
+            // Cek cache dulu
+            const cachedData = getChartDataCache('transaction', filterType);
+            if (cachedData) {
+                const newCanvas = replaceCanvas(canvasId);
+                if (!newCanvas) return;
+
+                setTimeout(() => {
+                    const ctx = newCanvas.getContext('2d');
+                    if (!ctx) return;
+
+                    const formattedLabels = cachedData.labels.map(label => {
+                        const date = moment(label);
+                        if (filterType === 'monthly') return date.format('MM/YYYY');
+                        if (filterType === 'yearly') return date.format('YYYY');
+                        return date.format('DD/MM/YYYY');
+                    });
+
+                    try {
+                        charts.transaction = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: formattedLabels,
+                                datasets: cachedData.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { beginAtZero: true },
+                                    x: {
+                                        type: 'category',
+                                        ticks: {
+                                            autoSkip: true,
+                                            maxTicksLimit: 12
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: { mode: 'index', intersect: false },
+                                    legend: { position: 'top' }
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error("Error creating transaction chart from cache:", error);
+                        showToast('error', 'Error', 'Gagal membuat grafik transaksi: ' + error.message);
+                    }
+                }, 100);
+                return;
+            }
+
+            // Jika tidak ada cache, ambil dari server
+            showChartLoading(canvasId);
+
+            const newCanvas = replaceCanvas(canvasId);
+            if (!newCanvas) return;
+
+            setTimeout(() => {
+                const ctx = newCanvas.getContext('2d');
+                if (!ctx) return;
+
+                google.script.run
+                    .withSuccessHandler(function (data) {
+                        if (!data || !data.labels || !data.datasets) {
+                            console.error("Invalid chart data received");
+                            showToast('error', 'Error', 'Data grafik tidak valid');
+                            return;
+                        }
+
+                        setChartDataCache('transaction', filterType, data);
+
+                        const formattedLabels = data.labels.map(label => {
+                            const date = moment(label);
+                            if (filterType === 'monthly') return date.format('MM/YYYY');
+                            if (filterType === 'yearly') return date.format('YYYY');
+                            return date.format('DD/MM/YYYY');
+                        });
+
+                        try {
+                            charts.transaction = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: formattedLabels,
+                                    datasets: data.datasets
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: { beginAtZero: true },
+                                        x: {
+                                            type: 'category',
+                                            ticks: {
+                                                autoSkip: true,
+                                                maxTicksLimit: 12
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: { mode: 'index', intersect: false },
+                                        legend: { position: 'top' }
+                                    }
+                                }
+                            });
+                        } catch (error) {
+                            console.error("Error creating transaction chart:", error);
+                            showToast('error', 'Error', 'Gagal membuat grafik transaksi: ' + error.message);
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        console.error("Failed to load transaction chart data:", error);
+                        const errorCtx = newCanvas.getContext('2d');
+                        errorCtx.font = '14px Arial';
+                        errorCtx.fillStyle = '#dc3545';
+                        errorCtx.textAlign = 'center';
+                        errorCtx.fillText('Gagal memuat data. Silakan coba lagi.', newCanvas.width / 2, newCanvas.height / 2);
+                    })
+                    .getChartData('transaction', filterType, '', '');
+            }, 100);
+        }
+
+        function loadCategoryChartWithFilter(filterType) {
+            const canvasId = 'categoryChart';
+
+            const cachedData = getChartDataCache('category', filterType);
+            if (cachedData) {
+                const newCanvas = replaceCanvas(canvasId);
+                if (!newCanvas) return;
+
+                setTimeout(() => {
+                    const ctx = newCanvas.getContext('2d');
+                    if (!ctx) return;
+
+                    try {
+                        charts.category = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: cachedData.labels,
+                                datasets: cachedData.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { beginAtZero: true },
+                                    x: {
+                                        type: 'category',
+                                        ticks: {
+                                            autoSkip: false,
+                                            maxRotation: 45,
+                                            minRotation: 0
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: { mode: 'index', intersect: false },
+                                    legend: { position: 'top' }
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error("Error creating category chart from cache:", error);
+                        showToast('error', 'Error', 'Gagal membuat grafik kategori: ' + error.message);
+                    }
+                }, 100);
+                return;
+            }
+
+            showChartLoading(canvasId);
+
+            const newCanvas = replaceCanvas(canvasId);
+            if (!newCanvas) return;
+
+            setTimeout(() => {
+                const ctx = newCanvas.getContext('2d');
+                if (!ctx) return;
+
+                google.script.run
+                    .withSuccessHandler(function (data) {
+                        if (!data || !data.labels || !data.datasets) {
+                            console.error("Invalid chart data received");
+                            showToast('error', 'Error', 'Data grafik tidak valid');
+                            return;
+                        }
+
+                        setChartDataCache('category', filterType, data);
+
+                        try {
+                            charts.category = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: data.labels,
+                                    datasets: data.datasets
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: { beginAtZero: true },
+                                        x: {
+                                            type: 'category',
+                                            ticks: {
+                                                autoSkip: false,
+                                                maxRotation: 45,
+                                                minRotation: 0
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: { mode: 'index', intersect: false },
+                                        legend: { position: 'top' }
+                                    }
+                                }
+                            });
+                        } catch (error) {
+                            console.error("Error creating category chart:", error);
+                            showToast('error', 'Error', 'Gagal membuat grafik kategori: ' + error.message);
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        console.error("Failed to load category chart data:", error);
+                        const errorCtx = newCanvas.getContext('2d');
+                        errorCtx.font = '14px Arial';
+                        errorCtx.fillStyle = '#dc3545';
+                        errorCtx.textAlign = 'center';
+                        errorCtx.fillText('Gagal memuat data. Silakan coba lagi.', newCanvas.width / 2, newCanvas.height / 2);
+                    })
+                    .getChartData('category', filterType, '', '');
+            }, 100);
+        }
+
+        function fetchInventoryData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.inventory = data.reverse(); renderInventoryPage(pageCache.inventory); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Failed to load inventory: ' + error.message); }).getInventoryData();
+        }
+
+        function renderInventoryPage(data) {
+            const inventoryConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'inventory',
+                actionButtons: [
+                    { id: 'addInventoryBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah Alat' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan kode, nama, atau kategori...',
+                headerHtml: `<thead><tr><th>Kode</th><th>Nama</th><th>Kategori</th><th>Stok</th><th>Satuan</th><th>Harga Beli</th><th>Harga Jual</th><th>Aksi</th></tr></thead>`,
+                // --- HAK AKSES: Sembunyikan kolom aksi jika bukan Admin ---
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.code}</td>
+            <td>${item.name}</td>
+            <td>${item.category}</td>
+            <td>${item.stock}</td>
+            <td>${item.unit}</td>
+            <td>Rp ${item.buyPrice.toLocaleString('id-ID')}</td>
+            <td>Rp ${item.sellPrice.toLocaleString('id-ID')}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                }
+            };
+            renderPaginatedTable(inventoryConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addInventoryBtn')?.addEventListener('click', showAddInventoryForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.inventory; loadPage('inventory'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditInventoryForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteInventory(btn.getAttribute('data-id'))));
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        function showAddInventoryForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const categories = dropdownData.categories || [];
+
+            let categoryOptions = '';
+            for (const category of categories) {
+                categoryOptions += `<option value="${category}">${category}</option>`;
+            }
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah Alat Baru</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="inventoryForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Kode Alat</label>
+                  <input type="text" class="form-control-custom" id="itemCode" placeholder="Akan di-generate otomatis" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemName">Nama Alat</label>
+                  <input type="text" class="form-control-custom" id="itemName" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCategory">Kategori</label>
+                  <select class="form-control-custom" id="itemCategory" required>
+                    <option value="">Pilih Kategori</option>
+                    ${categoryOptions}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemUnit">Satuan</label>
+                  <input type="text" class="form-control-custom" id="itemUnit" placeholder="Contoh: Unit, PCS, Dus" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemStock">Stok Awal</label>
+                  <input type="number" class="form-control-custom" id="itemStock" value="0" min="0" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemBuyPrice">Harga Beli</label>
+                  <input type="number" class="form-control-custom" id="itemBuyPrice" value="0" min="0" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemSellPrice">Harga Jual</label>
+                  <input type="number" class="form-control-custom" id="itemSellPrice" value="0" min="0" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveInventoryBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddInventoryForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddInventoryForm);
+            document.getElementById('saveInventoryBtn').addEventListener('click', saveInventory);
+        }
+
+        function showEditInventoryForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            // 3. Ambil data langsung dari array yang sudah ada (instan, no loading)
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data alat tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit Alat</h5>
+          <button type="button" class="btn-close" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="inventoryForm">
+            <input type="hidden" id="itemId" value="${id}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Kode Alat</label>
+                  <input type="text" class="form-control-custom" id="itemCode" value="${data.code}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemName">Nama Alat</label>
+                  <input type="text" class="form-control-custom" id="itemName" value="${data.name}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCategory">Kategori</label>
+                  <input type="text" class="form-control-custom" id="itemCategory" value="${data.category}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemUnit">Satuan</label>
+                  <input type="text" class="form-control-custom" id="itemUnit" value="${data.unit}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemStock">Stok</label>
+                  <input type="number" class="form-control-custom" id="itemStock" value="${data.stock}" min="0" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemBuyPrice">Harga Beli</label>
+                  <input type="number" class="form-control-custom" id="itemBuyPrice" value="${data.buyPrice}" min="0" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemSellPrice">Harga Jual</label>
+                  <input type="number" class="form-control-custom" id="itemSellPrice" value="${data.sellPrice}" min="0" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateInventoryBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            // Attach event listeners
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddInventoryForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddInventoryForm);
+            document.getElementById('updateInventoryBtn').addEventListener('click', updateInventory);
+        }
+
+        function hideAddInventoryForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'none';
+            formContainer.innerHTML = '';
+        }
+
+        function saveInventory() {
+            const item = { code: document.getElementById('itemCode').value, name: document.getElementById('itemName').value, category: document.getElementById('itemCategory').value, stock: parseInt(document.getElementById('itemStock').value), unit: document.getElementById('itemUnit').value, buyPrice: parseInt(document.getElementById('itemBuyPrice').value), sellPrice: parseInt(document.getElementById('itemSellPrice').value) };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddInventoryForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.inventory;
+
+                        // PERBAIKAN: Perbarui dropdownData setelah berhasil menyimpan
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData; // Update global dropdown data
+                                loadPage('inventory'); // Muat ulang halaman
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save item: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addInventoryItem(item, currentUser.role);
+        }
+
+        function updateInventory() {
+            const id = document.getElementById('itemId').value;
+            const item = { code: document.getElementById('itemCode').value, name: document.getElementById('itemName').value, category: document.getElementById('itemCategory').value, stock: parseInt(document.getElementById('itemStock').value), unit: document.getElementById('itemUnit').value, buyPrice: parseInt(document.getElementById('itemBuyPrice').value), sellPrice: parseInt(document.getElementById('itemSellPrice').value) };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddInventoryForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.inventory;
+
+                        // PERBAIKAN: Perbarui dropdownData setelah berhasil memperbarui
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('inventory');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to update item: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateInventoryItem(id, item, currentUser.role);
+        }
+
+        function deleteInventory(id) {
+            showConfirmDialog(
+                'Hapus Alat',
+                'PERINGATAN: Ini akan menghapus data alat secara permanen dari master data. Apakah Anda yakin?',
+                () => {
+                    showLoading();
+                    google.script.run
+                        .withSuccessHandler(function (response) {
+                            hideLoading();
+                            if (response.success) {
+                                showToast('success', 'Sukses', response.message);
+                                delete pageCache.inventory;
+                                fetchInventoryData(); // Langsung fetch data baru
+                            } else {
+                                showToast('error', 'Error', response.message);
+                            }
+                        })
+                        .withFailureHandler(function (error) {
+                            hideLoading();
+                            showToast('error', 'Error', 'Gagal menghapus alat: ' + error.message);
+                        })
+                        // --- HAK AKSES: Kirim role user ke server ---
+                        .deleteInventoryItem(id, currentUser.role);
+                }
+            );
+        }
+
+        function fetchAlatMasukData() {
+            showLoading();
+            const startDate = document.getElementById('filterStartDateMasuk')?.value || '';
+            const endDate = document.getElementById('filterEndDateMasuk')?.value || '';
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.alatMasuk = data.reverse(); renderAlatMasukPage(pageCache.alatMasuk); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal memuat data alat masuk: ' + error.message); }).getAlatMasukData(startDate, endDate);
+        }
+
+        function renderAlatMasukPage(data) {
+            const alatMasukConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'alatMasuk',
+                actionButtons: [
+                    { id: 'addAlatMasukBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah Transaksi' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan ID, kode, nama, atau supplier...',
+                headerHtml: `<thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Kode Alat</th><th>Nama Alat</th><th>Jumlah</th><th>Supplier</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.transactionId}</td>
+            <td>${item.date}</td>
+            <td>${item.itemCode}</td>
+            <td>${item.itemName}</td>
+            <td>${item.quantity}</td>
+            <td>${item.supplier}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                },
+                extraControlsHtml: `<div class="input-group"><span class="input-group-text">Dari</span><input type="date" class="form-control" id="filterStartDateMasuk"><span class="input-group-text">Sampai</span><input type="date" class="form-control" id="filterEndDateMasuk"><button type="button" class="btn btn-primary-custom" id="applyFilterMasukBtn">Filter</button><button type="button" class="btn btn-outline-secondary" id="resetFilterMasukBtn">Reset</button></div>`
+            };
+            renderPaginatedTable(alatMasukConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addAlatMasukBtn')?.addEventListener('click', showAddAlatMasukForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.alatMasuk; loadPage('alatMasuk'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditAlatMasukForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteAlatMasuk(btn.getAttribute('data-id'))));
+                document.getElementById('applyFilterMasukBtn')?.addEventListener('click', () => { delete pageCache.alatMasuk; fetchAlatMasukData(); });
+                document.getElementById('resetFilterMasukBtn')?.addEventListener('click', () => { document.getElementById('filterStartDateMasuk').value = ''; document.getElementById('filterEndDateMasuk').value = ''; delete pageCache.alatMasuk; fetchAlatMasukData(); });
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        function showAddAlatMasukForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const items = dropdownData.items || [];
+            const suppliers = dropdownData.suppliers || [];
+
+            let itemOptions = '';
+            for (const item of items) {
+                itemOptions += `<option value="${item.code}">${item.name} (Stok: ${item.stock})</option>`;
+            }
+
+            let supplierOptions = '';
+            for (const supplier of suppliers) {
+                supplierOptions += `<option value="${supplier}">${supplier}</option>`;
+            }
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah Transaksi Alat Masuk</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="alatMasukForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionId">ID Transaksi</label>
+                  <input type="text" class="form-control-custom" id="transactionId" placeholder="Akan di-generate otomatis" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionDate">Tanggal</label>
+                  <input type="date" class="form-control-custom" id="transactionDate" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Nama Alat</label>
+                  <select class="form-control-custom" id="itemCode" required>
+                    <option value="">Pilih Alat</option>
+                    ${itemOptions}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemQuantity">Jumlah</label>
+                  <input type="number" class="form-control-custom" id="itemQuantity" min="1" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-group-custom">
+                  <label for="supplier">Supplier</label>
+                  <select class="form-control-custom" id="supplier" required>
+                    <option value="">Pilih Supplier</option>
+                    ${supplierOptions}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveAlatMasukBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            const today = new Date();
+            const formattedDate = today.getFullYear() + '-' +
+                ('0' + (today.getMonth() + 1)).slice(-2) + '-' +
+                ('0' + today.getDate()).slice(-2);
+            document.getElementById('transactionDate').value = formattedDate;
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddAlatMasukForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddAlatMasukForm);
+            document.getElementById('saveAlatMasukBtn').addEventListener('click', saveAlatMasuk);
+        }
+
+        function hideAddAlatMasukForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'none';
+            formContainer.innerHTML = '';
+        }
+
+        function showEditAlatMasukForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data transaksi tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const items = dropdownData.items || [];
+            const suppliers = dropdownData.suppliers || [];
+
+            let itemOptions = '';
+            for (const item of items) {
+                const selected = item.code === data.itemCode ? 'selected' : '';
+                itemOptions += `<option value="${item.code}" ${selected}>${item.name} (Stok: ${item.stock})</option>`;
+            }
+
+            let supplierOptions = '';
+            for (const supplier of suppliers) {
+                const selected = supplier === data.supplier ? 'selected' : '';
+                supplierOptions += `<option value="${supplier}" ${selected}>${supplier}</option>`;
+            }
+
+            // Format tanggal dengan benar
+            let formattedDate = '';
+            if (data.date) {
+                // Jika data.date sudah dalam format YYYY-MM-DD, gunakan langsung
+                if (typeof data.date === 'string' && data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    formattedDate = data.date;
+                } else {
+                    // Jika tidak, format tanggal
+                    const date = new Date(data.date);
+                    formattedDate = date.getFullYear() + '-' +
+                        ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+                        ('0' + date.getDate()).slice(-2);
+                }
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit Transaksi Alat Masuk</h5>
+          <button type="button" class="btn-close" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="alatMasukForm">
+            <input type="hidden" id="transactionIdHidden" value="${id}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionId">ID Transaksi</label>
+                  <input type="text" class="form-control-custom" id="transactionId" value="${data.transactionId}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionDate">Tanggal</label>
+                  <input type="date" class="form-control-custom" id="transactionDate" value="${formattedDate}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Nama Alat</label>
+                  <select class="form-control-custom" id="itemCode" required>
+                    <option value="">Pilih Alat</option>
+                    ${itemOptions}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemQuantity">Jumlah</label>
+                  <input type="number" class="form-control-custom" id="itemQuantity" value="${data.quantity}" min="1" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-group-custom">
+                  <label for="supplier">Supplier</label>
+                  <select class="form-control-custom" id="supplier" required>
+                    <option value="">Pilih Supplier</option>
+                    ${supplierOptions}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateAlatMasukBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddAlatMasukForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddAlatMasukForm);
+            document.getElementById('updateAlatMasukBtn').addEventListener('click', updateAlatMasuk);
+        }
+
+        function saveAlatMasuk() {
+            const selectedItem = dropdownData.items.find(item => item.code === document.getElementById('itemCode').value);
+            const transaction = { transactionId: document.getElementById('transactionId').value, date: document.getElementById('transactionDate').value, itemCode: document.getElementById('itemCode').value, itemName: selectedItem ? selectedItem.name : '', quantity: parseInt(document.getElementById('itemQuantity').value), supplier: document.getElementById('supplier').value };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddAlatMasukForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.alatMasuk;
+                        delete pageCache.inventory;
+                        delete pageCache.dashboard;
+
+                        // PERBAIKAN: Perbarui dropdownData (karena stok berubah)
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('alatMasuk');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save transaction: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addAlatMasuk(transaction, currentUser.role);
+        }
+
+        function updateAlatMasuk() {
+            const id = document.getElementById('transactionIdHidden').value;
+            const selectedItem = dropdownData.items.find(item => item.code === document.getElementById('itemCode').value);
+            const transaction = { transactionId: document.getElementById('transactionId').value, date: document.getElementById('transactionDate').value, itemCode: document.getElementById('itemCode').value, itemName: selectedItem ? selectedItem.name : '', quantity: parseInt(document.getElementById('itemQuantity').value), supplier: document.getElementById('supplier').value };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddAlatMasukForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.alatMasuk;
+                        delete pageCache.inventory;
+                        delete pageCache.dashboard;
+
+                        // PERBAIKAN: Perbarui dropdownData (karena stok berubah)
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('alatMasuk');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Gagal memperbarui transaksi: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateAlatMasuk(id, transaction, currentUser.role);
+        }
+
+        function deleteAlatMasuk(id) {
+            showConfirmDialog(
+                'Hapus Transaksi Masuk',
+                'Apakah Anda yakin ingin menghapus transaksi ini? Stok alat akan dikurangi secara otomatis.',
+                () => { // Fungsi ini akan dijalankan setelah modal benar-benar tertutup
+                    showLoading();
+                    google.script.run
+                        .withSuccessHandler(function (response) {
+                            hideLoading();
+                            if (response.success) {
+                                showToast('success', 'Sukses', response.message);
+                                // Hapus cache yang terpengaruh
+                                delete pageCache.alatMasuk;
+                                delete pageCache.inventory;
+                                delete pageCache.dashboard;
+
+                                // Fetch data dropdown terbaru, lalu fetch ulang data halaman
+                                google.script.run
+                                    .withSuccessHandler(function (newDropdownData) {
+                                        dropdownData = newDropdownData;
+                                        fetchAlatMasukData(); // Langsung fetch data baru
+                                    })
+                                    .withFailureHandler(function () {
+                                        // Jika gagal fetch dropdown, tetap refresh data utama
+                                        fetchAlatMasukData();
+                                    })
+                                    .getDropdownData();
+                            } else {
+                                showToast('error', 'Error', response.message);
+                            }
+                        })
+                        .withFailureHandler(function (error) {
+                            hideLoading();
+                            showToast('error', 'Error', 'Gagal menghapus transaksi: ' + error.message);
+                        })
+                        // --- HAK AKSES: Kirim role user ke server ---
+                        .deleteAlatMasuk(id, currentUser.role);
+                }
+            );
+        }
+
+        function fetchAlatKeluarData() {
+            showLoading();
+            const startDate = document.getElementById('filterStartDateKeluar')?.value || '';
+            const endDate = document.getElementById('filterEndDateKeluar')?.value || '';
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.alatKeluar = data.reverse(); renderAlatKeluarPage(pageCache.alatKeluar); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal memuat data alat keluar: ' + error.message); }).getAlatKeluarData(startDate, endDate);
+        }
+
+        function renderAlatKeluarPage(data) {
+            const alatKeluarConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'alatKeluar',
+                actionButtons: [
+                    { id: 'addAlatKeluarBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah Transaksi' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan ID, kode, atau nama alat...',
+                headerHtml: `<thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Kode Alat</th><th>Nama Alat</th><th>Jumlah</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.transactionId}</td>
+            <td>${item.date}</td>
+            <td>${item.itemCode}</td>
+            <td>${item.itemName}</td>
+            <td>${item.quantity}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                },
+                extraControlsHtml: `<div class="input-group"><span class="input-group-text">Dari</span><input type="date" class="form-control" id="filterStartDateKeluar"><span class="input-group-text">Sampai</span><input type="date" class="form-control" id="filterEndDateKeluar"><button type="button" class="btn btn-primary-custom" id="applyFilterKeluarBtn">Filter</button><button type="button" class="btn btn-outline-secondary" id="resetFilterKeluarBtn">Reset</button></div>`
+            };
+            renderPaginatedTable(alatKeluarConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addAlatKeluarBtn')?.addEventListener('click', showAddAlatKeluarForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.alatKeluar; loadPage('alatKeluar'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditAlatKeluarForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteAlatKeluar(btn.getAttribute('data-id'))));
+                document.getElementById('applyFilterKeluarBtn')?.addEventListener('click', () => { delete pageCache.alatKeluar; fetchAlatKeluarData(); });
+                document.getElementById('resetFilterKeluarBtn')?.addEventListener('click', () => { document.getElementById('filterStartDateKeluar').value = ''; document.getElementById('filterEndDateKeluar').value = ''; delete pageCache.alatKeluar; fetchAlatKeluarData(); });
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        function showAddAlatKeluarForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const items = dropdownData.items || [];
+
+            let itemOptions = '';
+            for (const item of items) {
+                itemOptions += `<option value="${item.code}">${item.name} (Stok: ${item.stock})</option>`;
+            }
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah Transaksi Alat Keluar</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="alatKeluarForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionId">ID Transaksi</label>
+                  <input type="text" class="form-control-custom" id="transactionId" placeholder="Akan di-generate otomatis" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionDate">Tanggal</label>
+                  <input type="date" class="form-control-custom" id="transactionDate" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Nama Alat</label>
+                  <select class="form-control-custom" id="itemCode" required>
+                    <option value="">Pilih Alat</option>
+                    ${itemOptions}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemQuantity">Jumlah</label>
+                  <input type="number" class="form-control-custom" id="itemQuantity" min="1" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveAlatKeluarBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            const today = new Date();
+            const formattedDate = today.getFullYear() + '-' +
+                ('0' + (today.getMonth() + 1)).slice(-2) + '-' +
+                ('0' + today.getDate()).slice(-2);
+            document.getElementById('transactionDate').value = formattedDate;
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddAlatKeluarForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddAlatKeluarForm);
+            document.getElementById('saveAlatKeluarBtn').addEventListener('click', saveAlatKeluar);
+        }
+
+        function hideAddAlatKeluarForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'none';
+            formContainer.innerHTML = '';
+        }
+
+        function showEditAlatKeluarForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data transaksi tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const items = dropdownData.items || [];
+
+            let itemOptions = '';
+            for (const item of items) {
+                const selected = item.code === data.itemCode ? 'selected' : '';
+                itemOptions += `<option value="${item.code}" ${selected}>${item.name} (Stok: ${item.stock})</option>`;
+            }
+
+            // Format tanggal dengan benar
+            let formattedDate = '';
+            if (data.date) {
+                // Jika data.date sudah dalam format YYYY-MM-DD, gunakan langsung
+                if (typeof data.date === 'string' && data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    formattedDate = data.date;
+                } else {
+                    // Jika tidak, format tanggal
+                    const date = new Date(data.date);
+                    formattedDate = date.getFullYear() + '-' +
+                        ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+                        ('0' + date.getDate()).slice(-2);
+                }
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit Transaksi Alat Keluar</h5>
+          <button type="button" class="btn-close" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="alatKeluarForm">
+            <input type="hidden" id="transactionIdHidden" value="${id}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionId">ID Transaksi</label>
+                  <input type="text" class="form-control-custom" id="transactionId" value="${data.transactionId}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="transactionDate">Tanggal</label>
+                  <input type="date" class="form-control-custom" id="transactionDate" value="${formattedDate}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemCode">Nama Alat</label>
+                  <select class="form-control-custom" id="itemCode" required>
+                    <option value="">Pilih Alat</option>
+                    ${itemOptions}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="itemQuantity">Jumlah</label>
+                  <input type="number" class="form-control-custom" id="itemQuantity" value="${data.quantity}" min="1" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateAlatKeluarBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddAlatKeluarForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddAlatKeluarForm);
+            document.getElementById('updateAlatKeluarBtn').addEventListener('click', updateAlatKeluar);
+        }
+
+        function saveAlatKeluar() {
+            const selectedItem = dropdownData.items.find(item => item.code === document.getElementById('itemCode').value);
+            const transaction = { transactionId: document.getElementById('transactionId').value, date: document.getElementById('transactionDate').value, itemCode: document.getElementById('itemCode').value, itemName: selectedItem ? selectedItem.name : '', quantity: parseInt(document.getElementById('itemQuantity').value) };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddAlatKeluarForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.alatKeluar;
+                        delete pageCache.inventory;
+                        delete pageCache.dashboard;
+
+                        // PERBAIKAN: Perbarui dropdownData (karena stok berubah)
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('alatKeluar');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save transaction: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addAlatKeluar(transaction, currentUser.role);
+        }
+
+        function updateAlatKeluar() {
+            const id = document.getElementById('transactionIdHidden').value;
+            const selectedItem = dropdownData.items.find(item => item.code === document.getElementById('itemCode').value);
+            const transaction = { transactionId: document.getElementById('transactionId').value, date: document.getElementById('transactionDate').value, itemCode: document.getElementById('itemCode').value, itemName: selectedItem ? selectedItem.name : '', quantity: parseInt(document.getElementById('itemQuantity').value) };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddAlatKeluarForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.alatKeluar;
+                        delete pageCache.inventory;
+                        delete pageCache.dashboard;
+
+                        // PERBAIKAN: Perbarui dropdownData (karena stok berubah)
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('alatKeluar');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Gagal memperbarui transaksi: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateAlatKeluar(id, transaction, currentUser.role);
+        }
+
+        function deleteAlatKeluar(id) {
+            showConfirmDialog(
+                'Hapus Transaksi Keluar',
+                'Apakah Anda yakin ingin menghapus transaksi ini? Stok alat akan dikembalikan.',
+                () => {
+                    showLoading();
+                    google.script.run
+                        .withSuccessHandler(function (response) {
+                            hideLoading();
+                            if (response.success) {
+                                showToast('success', 'Sukses', response.message);
+                                delete pageCache.alatKeluar;
+                                delete pageCache.inventory;
+                                delete pageCache.dashboard;
+
+                                google.script.run
+                                    .withSuccessHandler(function (newDropdownData) {
+                                        dropdownData = newDropdownData;
+                                        fetchAlatKeluarData(); // Langsung fetch data baru
+                                    })
+                                    .withFailureHandler(function () {
+                                        fetchAlatKeluarData();
+                                    })
+                                    .getDropdownData();
+                            } else {
+                                showToast('error', 'Error', response.message);
+                            }
+                        })
+                        .withFailureHandler(function (error) {
+                            hideLoading();
+                            showToast('error', 'Error', 'Gagal menghapus transaksi: ' + error.message);
+                        })
+                        // --- HAK AKSES: Kirim role user ke server ---
+                        .deleteAlatKeluar(id, currentUser.role);
+                }
+            );
+        }
+
+        function fetchLaporanMasukData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.laporanMasuk = data.reverse(); renderLaporanPage(pageCache.laporanMasuk); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal memuat data laporan: ' + error.message); }).getLaporanData();
+        }
+
+        function renderLaporanPage(data) {
+            const laporanConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'laporanMasuk',
+                actionButtons: [
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari laporan...',
+                headerHtml: `<thead><tr><th>ID Laporan</th><th>Alat</th><th>Kode</th><th>Keluhan</th><th>Pelapor</th><th>Ruangan</th><th>Tanggal</th><th>Status</th><th>Waktu Pengerjaan</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let statusBadge = '';
+                    if (item.status === 'Waiting') statusBadge = '<span class="badge bg-warning">Waiting</span>';
+                    else if (item.status === 'On Process') statusBadge = '<span class="badge bg-primary">On Process</span>';
+                    else if (item.status === 'Done') statusBadge = '<span class="badge bg-success">Done</span>';
+                    else statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+
+                    let actionButtonsHtml = '<div class="action-buttons">';
+
+                    // Tombol Approve hanya muncul jika status masih Waiting
+                    if (item.status === 'Waiting' && isAdmin()) {
+                        actionButtonsHtml += `<button class="btn-action edit" onclick="updateLaporanStatus('${item.id}', 'On Process')" title="Approve (On Process)"><i class="bi bi-play-fill"></i></button>`;
+                    }
+
+                    // Tombol Selesai bisa muncul jika On Process
+                    if (item.status === 'On Process' && isAdmin()) {
+                        actionButtonsHtml += `<button class="btn-action edit" onclick="updateLaporanStatus('${item.id}', 'Done')" title="Tandai Selesai"><i class="bi bi-check-lg"></i></button>`;
+                    }
+
+                    actionButtonsHtml += '</div>';
+
+                    return `
+                      <tr>
+                        <td>${item.laporanId}</td>
+                        <td>${item.alat}</td>
+                        <td>${item.kode || '-'}</td>
+                        <td>${item.keluhan}</td>
+                        <td>${item.pelapor}</td>
+                        <td>${item.ruangan}</td>
+                        <td>${item.tanggal}</td>
+                        <td>${statusBadge}</td>
+                        <td>${item.waktuPengerjaan || '-'}</td>
+                        <td>${actionButtonsHtml}</td>
+                      </tr>`;
+                }
+            };
+            renderPaginatedTable(laporanConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.laporanMasuk; fetchLaporanMasukData(); });
+            };
+        }
+
+        function updateLaporanStatus(id, status) {
+            showLoading();
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    hideLoading();
+                    if (response.success) {
+                        showToast('success', 'Sukses', response.message);
+                        delete pageCache.laporanMasuk;
+                        fetchLaporanMasukData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    showToast('error', 'Error', error.message);
+                })
+                .updateLaporanStatus(id, status);
+        }
+
+        function fetchSupplierData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.supplier = data.reverse(); renderSupplierPage(pageCache.supplier); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Failed to load suppliers: ' + error.message); }).getSupplierData();
+        }
+
+        function renderSupplierPage(data) {
+            const supplierConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'supplier',
+                actionButtons: [
+                    { id: 'addSupplierBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah Supplier' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan ID, nama, alamat, atau telepon...',
+                headerHtml: `<thead><tr><th>ID Supplier</th><th>Nama Supplier</th><th>Alamat</th><th>Telepon</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.supplierId}</td>
+            <td>${item.name}</td>
+            <td>${item.address}</td>
+            <td>${item.phone}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                }
+            };
+            renderPaginatedTable(supplierConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addSupplierBtn')?.addEventListener('click', showAddSupplierForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.supplier; loadPage('supplier'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditSupplierForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteSupplier(btn.getAttribute('data-id'))));
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        function showAddSupplierForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah Supplier Baru</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="supplierForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierId">ID Supplier</label>
+                  <input type="text" class="form-control-custom" id="supplierId" placeholder="Akan di-generate otomatis" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierName">Nama Supplier</label>
+                  <input type="text" class="form-control-custom" id="supplierName" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierAddress">Alamat</label>
+                  <input type="text" class="form-control-custom" id="supplierAddress" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierPhone">Telepon</label>
+                  <input type="text" class="form-control-custom" id="supplierPhone" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveSupplierBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddSupplierForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddSupplierForm);
+            document.getElementById('saveSupplierBtn').addEventListener('click', saveSupplier);
+        }
+
+        function hideAddSupplierForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'none';
+            formContainer.innerHTML = '';
+        }
+
+        function showEditSupplierForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data supplier tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit Supplier</h5>
+          <button type="button" class="btn-close" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="supplierForm">
+            <input type="hidden" id="supplierIdHidden" value="${id}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierId">ID Supplier</label>
+                  <input type="text" class="form-control-custom" id="supplierId" value="${data.supplierId}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierName">Nama Supplier</label>
+                  <input type="text" class="form-control-custom" id="supplierName" value="${data.name}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierAddress">Alamat</label>
+                  <input type="text" class="form-control-custom" id="supplierAddress" value="${data.address}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="supplierPhone">Telepon</label>
+                  <input type="text" class="form-control-custom" id="supplierPhone" value="${data.phone}" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateSupplierBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddSupplierForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddSupplierForm);
+            document.getElementById('updateSupplierBtn').addEventListener('click', updateSupplier);
+        }
+
+        function saveSupplier() {
+            const supplier = { supplierId: document.getElementById('supplierId').value, name: document.getElementById('supplierName').value, address: document.getElementById('supplierAddress').value, phone: document.getElementById('supplierPhone').value };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddSupplierForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.supplier;
+
+                        // PERBAIKAN: Perbarui dropdownData
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('supplier');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save supplier: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addSupplier(supplier, currentUser.role);
+        }
+
+        function updateSupplier() {
+            const id = document.getElementById('supplierIdHidden').value;
+            const supplier = { supplierId: document.getElementById('supplierId').value, name: document.getElementById('supplierName').value, address: document.getElementById('supplierAddress').value, phone: document.getElementById('supplierPhone').value };
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddSupplierForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.supplier;
+
+                        // PERBAIKAN: Perbarui dropdownData
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('supplier');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Gagal memperbarui supplier: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateSupplier(id, supplier, currentUser.role);
+        }
+
+        function deleteSupplier(id) {
+            showConfirmDialog('Hapus Supplier', 'Apakah Anda yakin ingin menghapus supplier ini?', () => {
+                showLoading();
+                google.script.run.withSuccessHandler(function (response) { hideLoading(); if (response.success) { showToast('success', 'Sukses', response.message); delete pageCache.supplier; fetchSupplierData(); } else { showToast('error', 'Error', response.message); } }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal menghapus supplier: ' + error.message); })
+                    // --- HAK AKSES: Kirim role user ke server ---
+                    .deleteSupplier(id, currentUser.role);
+            });
+        }
+
+        function fetchKategoriData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.kategori = data.reverse(); renderKategoriPage(pageCache.kategori); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Failed to load categories: ' + error.message); }).getKategoriData();
+        }
+
+        function renderKategoriPage(data) {
+            const kategoriConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'kategori',
+                actionButtons: [
+                    { id: 'addKategoriBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah Kategori' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan ID atau nama kategori...',
+                headerHtml: `<thead><tr><th>ID Kategori</th><th>Nama Kategori</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.kategoriId}</td>
+            <td>${item.name}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                }
+            };
+            renderPaginatedTable(kategoriConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addKategoriBtn')?.addEventListener('click', showAddKategoriForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.kategori; loadPage('kategori'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditKategoriForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteKategori(btn.getAttribute('data-id'))));
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        function showAddKategoriForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah Kategori Baru</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="kategoriForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="kategoriId">ID Kategori</label>
+                  <input type="text" class="form-control-custom" id="kategoriId" placeholder="Akan di-generate otomatis" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="kategoriName">Nama Kategori</label>
+                  <input type="text" class="form-control-custom" id="kategoriName" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveKategoriBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddKategoriForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddKategoriForm);
+            document.getElementById('saveKategoriBtn').addEventListener('click', saveKategori);
+        }
+
+        function hideAddKategoriForm() {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'none';
+            formContainer.innerHTML = '';
+        }
+
+        function showEditKategoriForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data kategori tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit Kategori</h5>
+          <button type="button" class="btn-close" id="closeFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="kategoriForm">
+            <input type="hidden" id="kategoriIdHidden" value="${id}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="kategoriId">ID Kategori</label>
+                  <input type="text" class="form-control-custom" id="kategoriId" value="${data.kategoriId}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="kategoriName">Nama Kategori</label>
+                  <input type="text" class="form-control-custom" id="kategoriName" value="${data.name}" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateKategoriBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeFormBtn').addEventListener('click', hideAddKategoriForm);
+            document.getElementById('cancelFormBtn').addEventListener('click', hideAddKategoriForm);
+            document.getElementById('updateKategoriBtn').addEventListener('click', updateKategori);
+        }
+
+        function saveKategori() {
+            const kategori = {
+                kategoriId: document.getElementById('kategoriId').value,
+                name: document.getElementById('kategoriName').value
+            };
+
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddKategoriForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.kategori; // Hapus cache agar data diperbarui
+
+                        // PERBAIKAN: Perbarui dropdownData setelah berhasil menyimpan
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData; // Update global dropdown data
+                                loadPage('kategori'); // Muat ulang halaman
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save category: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addKategori(kategori, currentUser.role);
+        }
+
+        function updateKategori() {
+            const id = document.getElementById('kategoriIdHidden').value;
+            const kategori = {
+                kategoriId: document.getElementById('kategoriId').value,
+                name: document.getElementById('kategoriName').value
+            };
+
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddKategoriForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.kategori; // Hapus cache agar data diperbarui
+
+                        // PERBAIKAN: Perbarui dropdownData setelah berhasil memperbarui
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('kategori');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to update category: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateKategori(id, kategori, currentUser.role);
+        }
+
+        function deleteKategori(id) {
+            showConfirmDialog('Hapus Kategori', 'Apakah Anda yakin ingin menghapus kategori ini?', () => {
+                showLoading();
+                google.script.run.withSuccessHandler(function (response) { hideLoading(); if (response.success) { showToast('success', 'Sukses', response.message); delete pageCache.kategori; fetchKategoriData(); } else { showToast('error', 'Error', response.message); } }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal menghapus kategori: ' + error.message); })
+                    // --- HAK AKSES: Kirim role user ke server ---
+                    .deleteKategori(id, currentUser.role);
+            });
+        }
+
+        function fetchUserData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.user = data; renderUserPage(pageCache.user); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Failed to load users: ' + error.message); }).getUserData();
+        }
+
+        function renderUserPage(data) {
+            const userConfig = {
+                containerId: 'pageContent',
+                data: data,
+                dataType: 'user',
+                actionButtons: [
+                    { id: 'addUserBtn', class: 'btn btn-primary-custom', icon: 'bi bi-plus-circle', text: 'Tambah User' },
+                    { id: 'printPdfBtn', class: 'btn btn-danger-custom', icon: 'bi bi-file-earmark-pdf', text: 'Print PDF' },
+                    { id: 'exportExcelBtn', class: 'btn btn-success-custom', icon: 'bi bi-file-earmark-excel', text: 'Export Excel' },
+                    { id: 'refreshBtn', class: 'btn btn-secondary-custom', icon: 'bi bi-arrow-clockwise', text: 'Refresh' }
+                ],
+                searchPlaceholder: 'Cari berdasarkan username, nama, atau role...',
+                headerHtml: `<thead><tr><th>Username</th><th>Nama Lengkap</th><th>Role</th><th>Aksi</th></tr></thead>`,
+                rowTemplateFn: function (item) {
+                    let actionButtonsHtml = '';
+                    if (isAdmin()) {
+                        actionButtonsHtml = `
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" data-id="${item.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-action delete" data-id="${item.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+                    } else {
+                        actionButtonsHtml = `<td></td>` // Kosongkan kolom aksi untuk Manager
+                    }
+
+                    return `
+          <tr>
+            <td>${item.username}</td>
+            <td>${item.fullName}</td>
+            <td>${item.role}</td>
+            ${actionButtonsHtml}
+          </tr>`;
+                }
+            };
+            renderPaginatedTable(userConfig);
+            attachTableActionListeners = function () {
+                document.getElementById('addUserBtn')?.addEventListener('click', showAddUserForm);
+                document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+                document.getElementById('refreshBtn')?.addEventListener('click', () => { delete pageCache.user; loadPage('user'); });
+                document.querySelectorAll('.btn-action.edit').forEach(btn => btn.addEventListener('click', () => showEditUserForm(btn.getAttribute('data-id'))));
+                document.querySelectorAll('.btn-action.delete').forEach(btn => btn.addEventListener('click', () => deleteUser(btn.getAttribute('data-id'))));
+            };
+            setTimeout(attachTableActionListeners, 0);
+        }
+
+        // --- FUNGSI UNTUK USER (SUDAH DIPERBAIKI) ---
+
+        function showAddUserForm() {
+            const formContainer = document.getElementById('formContainer');
+            if (!formContainer) {
+                console.error("Form container #formContainer not found!");
+                return;
+            }
+
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const formHtml = `
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tambah User Baru</h5>
+          <button type="button" class="btn-close btn-close-white" id="closeAddUserFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="addUserFormElement">
+            <!-- PERBAIKAN: Gunakan ID yang unik untuk mencegah konflik dengan form login -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="newUserUsername">Username</label>
+                  <input type="text" class="form-control-custom" id="newUserUsername" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="newUserPassword">Password</label>
+                  <input type="password" class="form-control-custom" id="newUserPassword" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="newUserFullName">Nama Lengkap</label>
+                  <input type="text" class="form-control-custom" id="newUserFullName" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="newUserRole">Role</label>
+                  <select class="form-control-custom" id="newUserRole" required>
+                    <option value="">Pilih Role</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Manajemen">Manajemen</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelAddUserFormBtn">Batal</button>
+              <button type="button" class="btn btn-primary-custom" id="saveNewUserBtn">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            // Tambahkan event listener setelah form ada di DOM
+            document.getElementById('closeAddUserFormBtn').addEventListener('click', hideAddUserForm);
+            document.getElementById('cancelAddUserFormBtn').addEventListener('click', hideAddUserForm);
+            document.getElementById('saveNewUserBtn').addEventListener('click', saveUser);
+        }
+
+        function hideAddUserForm() {
+            const formContainer = document.getElementById('formContainer');
+            if (formContainer) {
+                formContainer.style.display = 'none';
+                formContainer.innerHTML = '';
+            }
+        }
+
+        function saveUser() {
+            // Cari elemen dengan ID yang baru
+            const usernameEl = document.getElementById('newUserUsername');
+            const passwordEl = document.getElementById('newUserPassword');
+            const fullNameEl = document.getElementById('newUserFullName');
+            const roleEl = document.getElementById('newUserRole');
+
+            // Validasi: Pastikan semua elemen ditemukan sebelum mencoba mengambil nilainya
+            if (!usernameEl || !passwordEl || !fullNameEl || !roleEl) {
+                console.error("Salah satu elemen form tidak ditemukan!");
+                showToast('error', 'Error', 'Form tidak valid. Silakan muat ulang halaman dan coba lagi.');
+                return; // Hentikan fungsi jika ada elemen yang hilang
+            }
+
+            const user = {
+                username: usernameEl.value,
+                password: passwordEl.value,
+                fullName: fullNameEl.value,
+                role: roleEl.value
+            };
+
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddUserForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.user; // Hapus cache agar data diperbarui
+
+                        // Perbarui dropdownData setelah berhasil menyimpan
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData; // Update global dropdown data
+                                loadPage('user'); // Muat ulang halaman
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Failed to save user: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .addUser(user, currentUser.role);
+        }
+
+        function showEditUserForm(id) {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            formContainer.style.display = 'none';
+
+            const data = paginationState.allData.find(item => item.id == id);
+            if (!data) {
+                showToast('error', 'Error', 'Data user tidak ditemukan. Silakan refresh halaman.');
+                return;
+            }
+
+            const formHtml = `
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Edit User</h5>
+          <button type="button" class="btn-close" id="closeEditUserFormBtn"></button>
+        </div>
+        <div class="card-body">
+          <form id="editUserFormElement">
+            <input type="hidden" id="editUserId" value="${id}">
+            <!-- PERBAIKAN: Gunakan ID yang unik -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="editUserUsername">Username</label>
+                  <input type="text" class="form-control-custom" id="editUserUsername" value="${data.username}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="editUserPassword">Password</label>
+                  <input type="password" class="form-control-custom" id="editUserPassword" value="${data.password}" required>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="editUserFullName">Nama Lengkap</label>
+                  <input type="text" class="form-control-custom" id="editUserFullName" value="${data.fullName}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label for="editUserRole">Role</label>
+                  <select class="form-control-custom" id="editUserRole" required>
+                    <option value="">Pilih Role</option>
+                    <option value="Admin" ${data.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                    <option value="Manajemen" ${data.role === 'Manajemen' ? 'selected' : ''}>Manajemen</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" id="cancelEditUserFormBtn">Batal</button>
+              <button type="button" class="btn btn-warning" id="updateUserBtn">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+            formContainer.innerHTML = formHtml;
+            formContainer.style.display = 'block';
+
+            document.getElementById('closeEditUserFormBtn').addEventListener('click', hideAddUserForm);
+            document.getElementById('cancelEditUserFormBtn').addEventListener('click', hideAddUserForm);
+            document.getElementById('updateUserBtn').addEventListener('click', updateUser);
+        }
+
+        function updateUser() {
+            const id = document.getElementById('editUserId').value;
+            // PERBAIKAN: Ambil nilai dari ID yang baru dan unik
+            const user = {
+                username: document.getElementById('editUserUsername').value,
+                password: document.getElementById('editUserPassword').value,
+                fullName: document.getElementById('editUserFullName').value,
+                role: document.getElementById('editUserRole').value
+            };
+
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    if (response.success) {
+                        hideAddUserForm();
+                        showToast('success', 'Success', response.message);
+                        delete pageCache.user; // Hapus cache agar data diperbarui
+
+                        // Perbarui dropdownData setelah berhasil memperbarui
+                        google.script.run
+                            .withSuccessHandler(function (newDropdownData) {
+                                dropdownData = newDropdownData;
+                                loadPage('user');
+                            })
+                            .getDropdownData();
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showToast('error', 'Error', 'Gagal memperbarui user: ' + error.message);
+                })
+                // --- HAK AKSES: Kirim role user ke server ---
+                .updateUser(id, user, currentUser.role);
+        }
+
+        function deleteUser(id) {
+            showConfirmDialog(
+                'Hapus User',
+                'Apakah Anda yakin ingin menghapus user ini?',
+                () => {
+                    showLoading();
+                    google.script.run.withSuccessHandler(function (response) { hideLoading(); if (response.success) { showToast('success', 'Sukses', response.message); delete pageCache.user; fetchUserData(); } else { showToast('error', 'Error', response.message); } }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Gagal menghapus user: ' + error.message); })
+                        // --- HAK AKSES: Kirim role user ke server ---
+                        .deleteUser(id, currentUser.role);
+                }
+            );
+        }
+
+        function fetchUserData() {
+            showLoading();
+            google.script.run.withSuccessHandler(function (data) { hideLoading(); pageCache.user = data; renderUserPage(pageCache.user); }).withFailureHandler(function (error) { hideLoading(); showToast('error', 'Error', 'Failed to load users: ' + error.message); }).getUserData();
+        }
+
+        // --- FUNGSI PAGINATION, EXPORT, DAN UTILITAS LAINNYA ---
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        function printToPDF() {
+            // Cari elemen tabel yang sedang aktif
+            const tableElement = document.querySelector('.table-custom');
+
+            if (!tableElement) {
+                showToast('warning', 'Peringatan', 'Tidak ada tabel yang bisa dicetak pada halaman ini.');
+                return;
+            }
+
+            // Ambil judul halaman
+            const pageTitle = document.getElementById('pageTitle').textContent;
+
+            // Buat window baru untuk print
+            const printWindow = window.open('', '_blank');
+
+            // Buat konten HTML untuk print
+            let printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Print Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        @media print {
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Laporan ${pageTitle}</h2>
+      <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}</p>
+      ${tableElement.outerHTML}
+    </body>
+    </html>
+  `;
+
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            // Tunggu sebentar agar konten dimuat
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+                showToast('info', 'Info', 'Dialog print telah dibuka. Pilih "Save as PDF" untuk menyimpan sebagai PDF.');
+            }, 500);
+        }
+
+        function showAlert(message, type) {
+            const alertEl = document.getElementById('alertMessage');
+            alertEl.textContent = message;
+            alertEl.className = 'alert alert-' + type;
+            alertEl.style.display = 'block';
+            setTimeout(() => { alertEl.style.display = 'none'; }, 5000);
+        }
+
+        function showToast(type, title, message) {
+            const toastId = 'toast-' + Date.now();
+            let icon = '';
+            switch (type) { case 'success': icon = 'bi-check-circle-fill'; break; case 'error': icon = 'bi-x-circle-fill'; break; case 'warning': icon = 'bi-exclamation-triangle-fill'; break; default: icon = 'bi-info-circle-fill'; }
+
+            const toastHtml = `
+      <div id="${toastId}" class="toast-custom ${type}">
+        <div class="toast-icon"><i class="bi ${icon}"></i></div>
+        <div class="toast-content"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>
+        <button class="toast-close" onclick="closeToast('${toastId}')"><i class="bi bi-x"></i></button>
+      </div>
+    `;
+
+            document.getElementById('toastContainer').insertAdjacentHTML('beforeend', toastHtml);
+            setTimeout(() => closeToast(toastId), 5000);
+        }
+
+        function closeToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }
+        }
+
+        function showChartLoading(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Tampilkan loading text
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
+        }
+
+        function replaceCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+
+            try {
+                // Hancurkan semua chart yang terkait dengan canvas ini
+                Object.keys(Chart.instances).forEach(instanceId => {
+                    const instance = Chart.instances[instanceId];
+                    if (instance && instance.canvas && instance.canvas.id === canvasId) {
+                        instance.destroy();
+                    }
+                });
+
+                // Buat canvas baru
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = canvasId;
+                newCanvas.className = canvas.className;
+                newCanvas.style.width = canvas.style.width;
+                newCanvas.style.height = canvas.style.height;
+
+                // Ganti canvas lama dengan yang baru
+                canvas.parentNode.replaceChild(newCanvas, canvas);
+
+                return newCanvas;
+            } catch (e) {
+                console.warn(`Error replacing canvas ${canvasId}:`, e);
+                return canvas;
+            }
+        }
+
+        // Fungsi untuk menyimpan cache
+        function setChartDataCache(chartType, filterType, data) {
+            if (!chartDataCache[chartType]) {
+                chartDataCache[chartType] = {};
+            }
+            chartDataCache[chartType][filterType] = {
+                data: data,
+                timestamp: Date.now()
+            };
+        }
+
+        // Fungsi untuk mengambil cache
+        function getChartDataCache(chartType, filterType, maxAge = 300000) { // 5 menit
+            if (chartDataCache[chartType] && chartDataCache[chartType][filterType]) {
+                const cached = chartDataCache[chartType][filterType];
+                if (Date.now() - cached.timestamp < maxAge) {
+                    return cached.data;
+                }
+            }
+            return null;
+        }
+
+        function renderPaginatedTable(config) {
+            paginationState.config = config;
+            paginationState.allData = config.data || [];
+            paginationState.totalItems = paginationState.allData.length;
+            paginationState.currentPage = 1;
+
+            const container = document.getElementById(config.containerId);
+            if (!container) return;
+
+            // --- HAK AKSES: Filter tombol aksi berdasarkan role ---
+            let actionButtonsToShow = [];
+            if (config.actionButtons && config.actionButtons.length > 0) {
+                if (isAdmin()) {
+                    // Jika Admin, tampilkan semua tombol
+                    actionButtonsToShow = config.actionButtons;
+                } else {
+                    // Jika Manager, hanya tampilkan tombol yang diizinkan (misal: Print, Export, Refresh)
+                    actionButtonsToShow = config.actionButtons.filter(btn =>
+                        btn.id !== 'addInventoryBtn' &&
+                        btn.id !== 'addAlatMasukBtn' &&
+                        btn.id !== 'addAlatKeluarBtn' &&
+                        btn.id !== 'addSupplierBtn' &&
+                        btn.id !== 'addKategoriBtn' &&
+                        btn.id !== 'addUserBtn'
+                    );
+                }
+            }
+
+            let html = `
+      <div class="card-custom">
+        <div class="card-header-custom">
+          <div class="action-buttons-container">
+    `;
+
+            // Render tombol aksi yang sudah difilter
+            if (actionButtonsToShow && actionButtonsToShow.length > 0) {
+                actionButtonsToShow.forEach(btn => {
+                    html += `<button class="${btn.class}" id="${btn.id}"><i class="${btn.icon} me-2"></i>${btn.text}</button>`;
+                });
+            }
+
+            html += `
+          </div>
+        </div>
+        <div class="card-body-custom">
+    `;
+
+            if (config.extraControlsHtml && config.searchPlaceholder) {
+                html += `
+        <div class="controls-container d-flex align-items-stretch gap-3 mb-3">
+          <div class="flex-grow-1">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control-custom table-search-input" placeholder="${config.searchPlaceholder}">
+            </div>
+          </div>
+          <div>
+            ${config.extraControlsHtml}
+          </div>
+        </div>`;
+            } else if (config.searchPlaceholder) {
+                html += `
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control-custom table-search-input" placeholder="${config.searchPlaceholder}">
+        </div>`;
+            }
+
+            html += `
+          <div id="formContainer" class="form-container mb-3" style="display: none;"></div>
+          <div class="table-responsive">
+            <table class="table-custom">
+              ${config.headerHtml}
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-container">
+            <div class="pagination-info">
+              Menampilkan <span id="startItem">0</span> - <span id="endItem">0</span> dari <span id="totalItemsDisplay">0</span> item
+            </div>
+            <div class="rows-per-page-selector">
+              Tampilkan per halaman:
+              <select id="rowsPerPageSelect">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+              </select>
+            </div>
+            <div class="pagination-controls">
+              <nav aria-label="Page navigation">
+                <ul class="pagination" id="paginationList"></ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+            container.innerHTML = html;
+
+            const rowsPerPageSelect = document.getElementById('rowsPerPageSelect');
+            if (rowsPerPageSelect) {
+                rowsPerPageSelect.value = paginationState.rowsPerPage;
+                rowsPerPageSelect.addEventListener('change', () => {
+                    paginationState.rowsPerPage = parseInt(rowsPerPageSelect.value);
+                    paginationState.currentPage = 1;
+                    updateTableDisplay();
+                });
+            }
+
+            if (config.searchPlaceholder) {
+                const searchInput = container.querySelector('.table-search-input');
+                if (searchInput) {
+                    searchInput.addEventListener('input', debounce(() => {
+                        const query = searchInput.value.toLowerCase();
+                        if (query.length < 2) {
+                            paginationState.allData = config.data;
+                        } else {
+                            paginationState.allData = config.data.filter(item => {
+                                return Object.values(item).some(val =>
+                                    String(val).toLowerCase().includes(query)
+                                );
+                            });
+                        }
+                        paginationState.totalItems = paginationState.allData.length;
+                        paginationState.currentPage = 1;
+                        updateTableDisplay();
+                    }, 500));
+                }
+            }
+
+            updateTableDisplay();
+        }
+
+        function updateTableDisplay() {
+            const { allData, currentPage, rowsPerPage, totalItems, config } = paginationState;
+            const tableBody = document.getElementById('tableBody');
+            const paginationList = document.getElementById('paginationList');
+
+            // Hitung item yang akan ditampilkan
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const paginatedData = allData.slice(startIndex, endIndex);
+
+            // Render baris tabel
+            tableBody.innerHTML = '';
+            if (paginatedData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="100" class="text-center">Tidak ada data untuk ditampilkan.</td></tr>`;
+            } else {
+                paginatedData.forEach(item => {
+                    tableBody.innerHTML += config.rowTemplateFn(item);
+                });
+            }
+
+            // Render kontrol paginasi
+            renderPaginationControls();
+
+            // Update info
+            document.getElementById('startItem').textContent = totalItems > 0 ? startIndex + 1 : 0;
+            document.getElementById('endItem').textContent = endIndex > totalItems ? totalItems : endIndex;
+            document.getElementById('totalItemsDisplay').textContent = totalItems;
+
+            // Re-attach event listeners untuk aksi di dalam tabel (edit, delete)
+            attachTableActionListeners();
+        }
+
+        function renderPaginationControls() {
+            const { currentPage, rowsPerPage, totalItems } = paginationState;
+            const totalPages = Math.ceil(totalItems / rowsPerPage);
+            const paginationList = document.getElementById('paginationList');
+            let html = '';
+
+            // Previous Button
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                  <a class="page-link" href="#" aria-label="Previous" data-page="${currentPage - 1}">
+                      <span aria-hidden="true">&laquo;</span>
+                  </a>
+               </li>`;
+
+            // Page Number Buttons
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                if (startPage > 2) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                      <a class="page-link" href="#" data-page="${i}">${i}</a>
+                   </li>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+                html += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+            }
+
+            // Next Button
+            html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                  <a class="page-link" href="#" aria-label="Next" data-page="${currentPage + 1}">
+                      <span aria-hidden="true">&raquo;</span>
+                  </a>
+               </li>`;
+
+            paginationList.innerHTML = html;
+
+            // Attach event listeners untuk paginasi
+            document.querySelectorAll('.pagination .page-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = parseInt(e.target.closest('a').dataset.page);
+                    if (page && page !== paginationState.currentPage) {
+                        paginationState.currentPage = page;
+                        updateTableDisplay();
+                    }
+                });
+            });
+        }
+
+        // Fungsi utama untuk menempelkan event listener
+        // Ini akan dipanggil oleh setiap fungsi render...Page
+        function attachTableActionListeners() {
+            // Event listener untuk tombol tambah
+            document.getElementById('addInventoryBtn')?.addEventListener('click', showAddInventoryForm);
+            document.getElementById('addAlatMasukBtn')?.addEventListener('click', showAddAlatMasukForm);
+            document.getElementById('addAlatKeluarBtn')?.addEventListener('click', showAddAlatKeluarForm);
+            document.getElementById('addSupplierBtn')?.addEventListener('click', showAddSupplierForm);
+            document.getElementById('addKategoriBtn')?.addEventListener('click', showAddKategoriForm);
+            document.getElementById('addUserBtn')?.addEventListener('click', showAddUserForm);
+
+            // Event listener untuk tombol lainnya
+            document.getElementById('printPdfBtn')?.addEventListener('click', printToPDF);
+            document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
+            document.getElementById('refreshBtn')?.addEventListener('click', () => {
+                delete pageCache[paginationState.config.dataType];
+                loadPage(paginationState.config.dataType);
+            });
+
+            // Event listener untuk tombol aksi di baris tabel (edit/delete)
+            document.querySelectorAll('.btn-action.edit').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    switch (paginationState.config.dataType) {
+                        case 'inventory': showEditInventoryForm(id); break;
+                        case 'alatMasuk': showEditAlatMasukForm(id); break;
+                        case 'alatKeluar': showEditAlatKeluarForm(id); break;
+                        case 'supplier': showEditSupplierForm(id); break;
+                        case 'kategori': showEditKategoriForm(id); break;
+                        case 'user': showEditUserForm(id); break;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.btn-action.delete').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    switch (paginationState.config.dataType) {
+                        case 'inventory': deleteInventory(id); break;
+                        case 'alatMasuk': deleteAlatMasuk(id); break;
+                        case 'alatKeluar': deleteAlatKeluar(id); break;
+                        case 'supplier': deleteSupplier(id); break;
+                        case 'kategori': deleteKategori(id); break;
+                        case 'user': deleteUser(id); break;
+                    }
+                });
+            });
+
+            // Event listener untuk filter
+            document.getElementById('applyFilterMasukBtn')?.addEventListener('click', () => {
+                delete pageCache.alatMasuk;
+                fetchAlatMasukData();
+            });
+            document.getElementById('resetFilterMasukBtn')?.addEventListener('click', () => {
+                document.getElementById('filterStartDateMasuk').value = '';
+                document.getElementById('filterEndDateMasuk').value = '';
+                delete pageCache.alatMasuk;
+                fetchAlatMasukData();
+            });
+
+            document.getElementById('applyFilterKeluarBtn')?.addEventListener('click', () => {
+                delete pageCache.alatKeluar;
+                fetchAlatKeluarData();
+            });
+            document.getElementById('resetFilterKeluarBtn')?.addEventListener('click', () => {
+                document.getElementById('filterStartDateKeluar').value = '';
+                document.getElementById('filterEndDateKeluar').value = '';
+                delete pageCache.alatKeluar;
+                fetchAlatKeluarData();
+            });
+        }
+
+        function exportToExcel() {
+            showLoading();
+
+            // Ambil judul halaman
+            const pageTitle = document.getElementById('pageTitle').textContent;
+            const data = paginationState.allData;
+
+            if (!data || data.length === 0) {
+                hideLoading();
+                showToast('warning', 'Peringatan', 'Tidak ada data untuk diekspor.');
+                return;
+            }
+
+            // Tentukan nama sheet berdasarkan halaman aktif
+            const sheetName = getSheetNameFromPage(currentPage);
+
+            // PERBAIKAN: Tambahkan pengecekan jika sheetName tidak ditemukan
+            if (!sheetName || sheetName === 'Data') {
+                hideLoading();
+                showToast('error', 'Error', `Tidak dapat menentukan sheet untuk halaman "${currentPage}".`);
+                console.error('Sheet name not found for page:', currentPage);
+                return;
+            }
+
+            // Panggil fungsi Apps Script untuk export Excel
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    hideLoading();
+                    if (response.success) {
+                        // Tampilkan notifikasi sukses
+                        showToast('success', 'Export Berhasil', 'File Excel berhasil dibuat.');
+
+                        // Buka URL file Excel di tab baru secara langsung
+                        window.open(response.url, '_blank');
+                    } else {
+                        showToast('error', 'Error', response.message);
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    showToast('error', 'Error', 'Gagal mengekspor data. Silakan coba lagi.');
+                    console.error('Google Script failure:', error);
+                })
+                .exportToExcel(sheetName, data, pageTitle);
+        }
+
+        function getSheetNameFromPage(page) {
+            const sheetMap = {
+                'inventory': 'Inventory',
+                'alatMasuk': 'Alat Masuk',
+                'alatKeluar': 'Alat Keluar',
+                'supplier': 'Supplier',
+                'kategori': 'Kategori Alat',
+                'user': 'User'
+            };
+            return sheetMap[page] || 'Data';
+        }
+
+        function showConfirmDialog(title, message, onConfirm) {
+            // Set judul dan pesan
+            document.getElementById('confirmDialogTitle').innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i>${title}`;
+            document.getElementById('confirmDialogMessage').textContent = message;
+
+            const modalElement = document.getElementById('confirmDialog');
+            const confirmBtn = document.getElementById('confirmDialogBtn');
+
+            // Hapus listener lama untuk mencegah duplikat
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            // Buat instance modal
+            const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+
+            // --- PERBAIKAN UTAMA: GUNAKAN VARIABEL PENANDA (FLAG) ---
+            let isConfirmed = false; // Inisialisasi flag sebagai false
+
+            // Listener yang akan dijalankan setelah modal benar-benar tertutup
+            const handleModalHidden = () => {
+                // Hanya jalankan onConfirm jika flag-nya true (artinya tombol Hapus ditekan)
+                if (isConfirmed) {
+                    onConfirm();
+                }
+            };
+
+            // Tambahkan listener ke event 'hidden.bs.modal'
+            // Opsi { once: true } memastikan listener ini otomatis dihapus setelah dijalankan
+            modalElement.addEventListener('hidden.bs.modal', handleModalHidden, { once: true });
+
+            // Listener untuk tombol "Hapus"
+            newConfirmBtn.addEventListener('click', () => {
+                isConfirmed = true; // Set flag menjadi true saat tombol Hapus ditekan
+                modalInstance.hide(); // Tutup modal
+            });
+
+            // Tampilkan modal
+            modalInstance.show();
+        }
+
+        function formatDateForDisplay(date) {
+            if (!date) return '';
+
+            // Jika date adalah string dalam format ISO, konversi ke objek Date
+            if (typeof date === 'string') {
+                date = new Date(date);
+            }
+
+            return date.toLocaleDateString('id-ID');
+        }
+    </script>
+    <div class="modal fade" id="confirmDialog" tabindex="-1" aria-labelledby="confirmDialogTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDialogTitle">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Konfirmasi Hapus
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDialogMessage">Apakah Anda yakin ingin menghapus data ini?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDialogBtn">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
