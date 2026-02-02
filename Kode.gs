@@ -73,6 +73,59 @@ function initializeSheets() {
   return { success: true, message: "Sheets initialized successfully" };
 }
 
+// === NOTIFICATION HELPER ===
+function sendNtfy(topic, title, message, tags, clickUrl) {
+  const url = 'https://ntfy.sh/' + topic;
+  const headers = {
+      'Title': title,
+      'Tags': tags || ''
+  };
+  
+  if (clickUrl) {
+      headers['Click'] = clickUrl;
+  }
+
+  const options = {
+    'method': 'post',
+    'payload': message,
+    'headers': headers,
+    'muteHttpExceptions': true
+  };
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    Logger.log(`Sent to ${topic}: ${response.getResponseCode()} ${response.getContentText()}`);
+  } catch(e) {
+    Logger.log(`Failed to send ntfy to ${topic}: ${e.message}`);
+  }
+}
+
+// Fungsi dummy untuk tes notifikasi
+function testNtfyChannels() {
+  const timestamp = new Date().toLocaleString();
+  const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+  
+  // Tes Channel 1: admin-atem -> Link ke Page Admin
+  const adminUrl = baseUrl + "?page=admin";
+  sendNtfy('admin-atem', 'Test Notif Admin', `Tes koneksi ke admin-atem pada ${timestamp}\nKlik untuk buka Admin.`, 'white_check_mark', adminUrl);
+  
+  // Tes Channel 2: lapor-atem -> Link ke Lapor (Default)
+  const laporUrl = baseUrl;
+  sendNtfy('lapor-atem', 'Test Notif Lapor', `Tes koneksi ke lapor-atem pada ${timestamp}\nKlik untuk buka Lapor.`, 'white_check_mark', laporUrl);
+  
+  // Tes Channel 3: team-atem -> Link ke Page ATEM
+  const atemUrl = baseUrl + "?page=atem";
+  sendNtfy('team-atem', 'Test Notif Team', `Tes koneksi ke team-atem pada ${timestamp}\nKlik untuk buka ATEM.`, 'white_check_mark', atemUrl);
+  
+  return "Notifikasi tes dikirim ke 3 channel dengan Link. Cek Logger untuk detail.";
+}
+
+// JALANKAN FUNGSI INI SEKALI UNTUK MEMBERIKAN IZIN (AUTHORIZATION)
+function forceAuth() {
+  UrlFetchApp.fetch("https://www.google.com");
+  Logger.log("Authorization success!");
+}
+
+
 // Setup headers for all sheets
 function setupHeaders() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -922,6 +975,20 @@ function addLaporan(laporan) {
     laporan.status
   ]);
   
+  // NOTIFIKASI: Laporan Baru Masuk
+  const msgBody = `${laporan.alat} di ${laporan.ruangan}\nKeluhan: ${laporan.keluhan}\nPelapor: ${laporan.pelapor}`;
+  const msgTitle = `Laporan Masuk: ${laporan.laporanId}`;
+  
+  // URL Hardcoded sesuai permintaan
+  const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+  const adminUrl = baseUrl + "?page=admin";
+  
+  // Kirim ke admin-atem dengan Link Action
+  sendNtfy('admin-atem', msgTitle, msgBody, 'loudspeaker,warning', adminUrl);
+  
+  // Kirim ke lapor-atem (Link ke default Lapor)
+  sendNtfy('lapor-atem', msgTitle, msgBody, 'clipboard', baseUrl);
+
   return { success: true, message: "Laporan berhasil dikirim", laporanId: laporan.laporanId };
 }
 
@@ -933,13 +1000,42 @@ function updateLaporanStatus(id, newStatus) {
 
         if (rowToUpdate > 1) {
             sheet.getRange(rowToUpdate, 8).setValue(newStatus); // Column H is Status (8)
+            const laporanId = sheet.getRange(rowToUpdate, 1).getValue(); // Ambil ID Laporan buat notif
             
-            // Jika status approval (On Process), catat waktu
+            const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+
+            // Jika status approval (On Process), catat waktu & kirim notif
             if (newStatus === 'On Process') {
                  const timeZone = spreadsheet.getSpreadsheetTimeZone();
                  const timestamp = Utilities.formatDate(new Date(), timeZone, 'yyyy-MM-dd HH:mm:ss');
                  sheet.getRange(rowToUpdate, 9).setValue(timestamp); // Column I is Waktu Pengerjaan (9)
+                 
+                 // NOTIFIKASI: On Process
+                 // Kirim ke lapor-atem dan team-atem
+                 const title = `Laporan Diproses: ${laporanId}`;
+                 const msg = `Status diubah menjadi On Process.\nTim teknisi mulai bekerja.`;
+                 
+                 // Link untuk team-atem
+                 const atemUrl = baseUrl + "?page=atem";
+
+                 // Link untuk lapor-atem (Default)
+                 sendNtfy('lapor-atem', title, msg, 'hammer_and_wrench', baseUrl);
+                 sendNtfy('team-atem', title, msg, 'hammer_and_wrench,blue_circle', atemUrl);
+                 
                  return { success: true, message: "Laporan di-approve dan status menjadi On Process" };
+            }
+            
+            // Jika status Done via tombol biasa (jika ada)
+            if (newStatus === 'Done') {
+                 // NOTIFIKASI: Done
+                 const title = `Laporan Selesai: ${laporanId}`;
+                 const msg = `Perbaikan telah selesai.\nStatus: Done`;
+                 
+                 // Link untuk team-atem (untuk cek history)
+                 const atemUrl = baseUrl + "?page=atem";
+                 
+                 sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
+                 sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
             }
             
              return { success: true, message: "Status laporan berhasil diperbarui menjadi " + newStatus };
@@ -968,6 +1064,18 @@ function updateLaporanDetails(id, details) {
       // Otomatis ubah status jadi Done jika belum
       if(details.markAsDone) {
           sheet.getRange(rowToUpdate, 8).setValue('Done');
+          
+          // NOTIFIKASI: Done (via Modal)
+          const laporanId = sheet.getRange(rowToUpdate, 1).getValue();
+          const title = `Laporan Selesai: ${laporanId}`;
+          const msg = `Tindakan: ${details.tindakan}\nStatus: Done\nOleh Tim ATEM`;
+          
+          const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+          const atemUrl = baseUrl + "?page=atem";
+
+          // Kirim ke lapor-atem dan team-atem
+          sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
+          sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
       }
 
       return { success: true, message: "Detail laporan berhasil disimpan" };
