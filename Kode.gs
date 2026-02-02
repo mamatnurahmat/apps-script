@@ -11,6 +11,17 @@ const SHEET_NAMES = {
   LAPORAN: 'Laporan'
 };
 
+const EMAIL_RECIPIENTS = {
+  'lapor-atem': 'mamat11nurahmat@gmail.com',
+  'admin-atem': 'mamat08nurahmat@gmail.com',
+  'team-atem': 'newrahmatt@gmail.com'
+};
+
+// Helper function untuk mendapatkan URL deployment secara dinamis
+function getBaseUrl() {
+  return ScriptApp.getService().getUrl();
+}
+
 function doGet(e) {
   if (e.parameter.page === 'admin-web') {
       return HtmlService.createHtmlOutputFromFile('LaporanMasuk')
@@ -113,24 +124,78 @@ function sendNtfy(topic, title, message, tags, clickUrl) {
   }
 }
 
-// Fungsi dummy untuk tes notifikasi
-function testNtfyChannels() {
+// === EMAIL NOTIFICATION HELPER ===
+function sendEmail(topic, subject, body, clickUrl) {
+  const recipient = EMAIL_RECIPIENTS[topic];
+  if (!recipient) {
+    Logger.log(`Email recipient for topic '${topic}' not found.`);
+    return;
+  }
+
+  let htmlBody = `<p>${body.replace(/\n/g, '<br>')}</p>`;
+  if (clickUrl) {
+    htmlBody += `<p><a href="${clickUrl}">Klik di sini untuk membuka aplikasi</a></p>`;
+  }
+
+  try {
+    GmailApp.sendEmail(recipient, subject, body, { htmlBody: htmlBody });
+    Logger.log(`Email sent to ${recipient} for topic ${topic}`);
+  } catch (e) {
+    Logger.log(`Failed to send email to ${recipient}: ${e.message}`);
+  }
+}
+
+// Fungsi untuk tes notifikasi (ntfy + email)
+function testNotificationChannels() {
   const timestamp = new Date().toLocaleString();
-  const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+  const baseUrl = getBaseUrl();
   
   // Tes Channel 1: admin-atem -> Link ke Page Admin
   const adminUrl = baseUrl + "?page=admin";
   sendNtfy('admin-atem', 'Test Notif Admin', `Tes koneksi ke admin-atem pada ${timestamp}\nKlik untuk buka Admin.`, 'white_check_mark', adminUrl);
+  sendEmail('admin-atem', 'Test Notif Admin', `Tes koneksi ke admin-atem pada ${timestamp}\nKlik untuk buka Admin.`, adminUrl);
   
   // Tes Channel 2: lapor-atem -> Link ke Lapor (Default)
   const laporUrl = baseUrl;
   sendNtfy('lapor-atem', 'Test Notif Lapor', `Tes koneksi ke lapor-atem pada ${timestamp}\nKlik untuk buka Lapor.`, 'white_check_mark', laporUrl);
+  sendEmail('lapor-atem', 'Test Notif Lapor', `Tes koneksi ke lapor-atem pada ${timestamp}\nKlik untuk buka Lapor.`, laporUrl);
   
   // Tes Channel 3: team-atem -> Link ke Page ATEM
   const atemUrl = baseUrl + "?page=atem";
   sendNtfy('team-atem', 'Test Notif Team', `Tes koneksi ke team-atem pada ${timestamp}\nKlik untuk buka ATEM.`, 'white_check_mark', atemUrl);
+  sendEmail('team-atem', 'Test Notif Team', `Tes koneksi ke team-atem pada ${timestamp}\nKlik untuk buka ATEM.`, atemUrl);
   
-  return "Notifikasi tes dikirim ke 3 channel dengan Link. Cek Logger untuk detail.";
+  return "Notifikasi tes (ntfy + email) dikirim ke 3 channel. Cek Logger untuk detail.";
+}
+
+// Fungsi untuk tes EMAIL SAJA (tanpa ntfy)
+function testEmailOnly() {
+  const timestamp = new Date().toLocaleString();
+  const baseUrl = getBaseUrl();
+  
+  Logger.log("=== MEMULAI TES EMAIL ===");
+  
+  // Tes Email 1: admin-atem -> mamat08nurahmat@gmail.com
+  const adminUrl = baseUrl + "?page=admin";
+  Logger.log(`Mengirim email ke admin-atem (${EMAIL_RECIPIENTS['admin-atem']})...`);
+  sendEmail('admin-atem', 'Test Email Admin', `Tes email ke admin-atem pada ${timestamp}\nKlik link untuk buka Admin.`, adminUrl);
+  
+  // Tes Email 2: lapor-atem -> mamat11nurahmat@gmail.com
+  Logger.log(`Mengirim email ke lapor-atem (${EMAIL_RECIPIENTS['lapor-atem']})...`);
+  sendEmail('lapor-atem', 'Test Email Lapor', `Tes email ke lapor-atem pada ${timestamp}\nKlik link untuk buka Lapor.`, baseUrl);
+  
+  // Tes Email 3: team-atem -> newrahmatt@gmail.com
+  const atemUrl = baseUrl + "?page=atem";
+  Logger.log(`Mengirim email ke team-atem (${EMAIL_RECIPIENTS['team-atem']})...`);
+  sendEmail('team-atem', 'Test Email Team', `Tes email ke team-atem pada ${timestamp}\nKlik link untuk buka ATEM.`, atemUrl);
+  
+  Logger.log("=== TES EMAIL SELESAI ===");
+  Logger.log("Cek inbox email berikut:");
+  Logger.log(`  - admin-atem: ${EMAIL_RECIPIENTS['admin-atem']}`);
+  Logger.log(`  - lapor-atem: ${EMAIL_RECIPIENTS['lapor-atem']}`);
+  Logger.log(`  - team-atem: ${EMAIL_RECIPIENTS['team-atem']}`);
+  
+  return "Email tes dikirim ke 3 alamat. Cek Logger dan inbox email untuk verifikasi.";
 }
 
 // JALANKAN FUNGSI INI SEKALI UNTUK MEMBERIKAN IZIN (AUTHORIZATION)
@@ -884,15 +949,17 @@ function addLaporan(laporan) {
   const msgBody = `${laporan.alat} di ${laporan.ruangan}\nKeluhan: ${laporan.keluhan}\nPelapor: ${laporan.pelapor}`;
   const msgTitle = `Laporan Masuk: ${laporan.laporanId}`;
   
-  // URL Hardcoded sesuai permintaan
-  const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+  // URL dinamis dari deployment
+  const baseUrl = getBaseUrl();
   const adminUrl = baseUrl + "?page=admin";
   
   // Kirim ke admin-atem dengan Link Action
   sendNtfy('admin-atem', msgTitle, msgBody, 'loudspeaker,warning', adminUrl);
+  sendEmail('admin-atem', msgTitle, msgBody, adminUrl);
   
   // Kirim ke lapor-atem (Link ke default Lapor)
   sendNtfy('lapor-atem', msgTitle, msgBody, 'clipboard', baseUrl);
+  sendEmail('lapor-atem', msgTitle, msgBody, baseUrl);
 
   return { success: true, message: "Laporan berhasil dikirim", laporanId: laporan.laporanId };
 }
@@ -907,7 +974,7 @@ function updateLaporanStatus(id, newStatus) {
             sheet.getRange(rowToUpdate, 8).setValue(newStatus); // Column H is Status (8)
             const laporanId = sheet.getRange(rowToUpdate, 1).getValue(); // Ambil ID Laporan buat notif
             
-            const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+            const baseUrl = getBaseUrl();
 
             // Jika status approval (On Process), catat waktu & kirim notif
             if (newStatus === 'On Process') {
@@ -925,7 +992,9 @@ function updateLaporanStatus(id, newStatus) {
 
                  // Link untuk lapor-atem (Default)
                  sendNtfy('lapor-atem', title, msg, 'hammer_and_wrench', baseUrl);
+                 sendEmail('lapor-atem', title, msg, baseUrl);
                  sendNtfy('team-atem', title, msg, 'hammer_and_wrench,blue_circle', atemUrl);
+                 sendEmail('team-atem', title, msg, atemUrl);
                  
                  return { success: true, message: "Laporan di-approve dan status menjadi On Process" };
             }
@@ -940,7 +1009,9 @@ function updateLaporanStatus(id, newStatus) {
                  const atemUrl = baseUrl + "?page=atem";
                  
                  sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
+                 sendEmail('lapor-atem', title, msg, baseUrl);
                  sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
+                 sendEmail('team-atem', title, msg, atemUrl);
             }
             
              return { success: true, message: "Status laporan berhasil diperbarui menjadi " + newStatus };
@@ -975,12 +1046,14 @@ function updateLaporanDetails(id, details) {
           const title = `Laporan Selesai: ${laporanId}`;
           const msg = `Tindakan: ${details.tindakan}\nStatus: Done\nOleh Tim ATEM`;
           
-          const baseUrl = "https://script.google.com/macros/s/AKfycbzlUsEjPm1ycSicbdtKIdOJUxFFNLRmz_JF8fyQ5fLrCeFrxxkkkcb2CJpENbCCukYbjg/exec";
+          const baseUrl = getBaseUrl();
           const atemUrl = baseUrl + "?page=atem";
 
           // Kirim ke lapor-atem dan team-atem
           sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
+          sendEmail('lapor-atem', title, msg, baseUrl);
           sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
+          sendEmail('team-atem', title, msg, atemUrl);
       }
 
       return { success: true, message: "Detail laporan berhasil disimpan" };
