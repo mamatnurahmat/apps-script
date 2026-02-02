@@ -1,4 +1,4 @@
-﻿// Global variables
+// Global variables
 const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
 const TIME_ZONE = 'GMT';
 const SHEET_NAMES = {
@@ -211,7 +211,6 @@ function setupFirstAdmin() {
   return { success: true, message: "Admin and Manager users created" };
 }
 
-/*
 function authenticateUser(username, password) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const userSheet = spreadsheet.getSheetByName(SHEET_NAMES.USER);
@@ -239,10 +238,8 @@ function authenticateUser(username, password) {
   
   return { success: false, message: "Invalid username or password" };
 }
-*/
 
 // Get all data for dropdowns
-/*
 function getDropdownData() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   
@@ -284,10 +281,8 @@ function getDropdownData() {
     items: items
   };
 }
-*/
 
 // CRUD functions for Inventory
-/*
 function getInventoryData() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
@@ -309,9 +304,7 @@ function getInventoryData() {
   
   return result;
 }
-*/
 
-/*
 function addInventoryItem(item) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
@@ -337,38 +330,58 @@ function addInventoryItem(item) {
   
   return { success: true, message: "Item added successfully", code: item.code };
 }
-*/
 
 function updateInventoryItem(id, item) {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
+    
     const rowToUpdate = parseInt(id) + 1;
     
+    Logger.log(`Memperbarui Inventory di baris: ${rowToUpdate}`);
+    
     if (rowToUpdate > 1) {
+      // Gunakan setValues untuk MEMPERBARUI, bukan appendRow
       sheet.getRange(rowToUpdate, 1, 1, 7).setValues([[
-        item.code, item.name, item.category, item.stock, item.unit, item.buyPrice, item.sellPrice
+        item.code,
+        item.name,
+        item.category,
+        item.stock,
+        item.unit,
+        item.buyPrice,
+        item.sellPrice
       ]]);
       return { success: true, message: "Item berhasil diperbarui" };
+    } else {
+      return { success: false, message: "ID baris tidak valid untuk diperbarui" };
     }
-    return { success: false, message: "ID baris tidak valid" };
   } catch (e) {
+    Logger.log(`Error memperbarui inventory: ${e.toString()}`);
     return { success: false, message: "Gagal memperbarui item: " + e.message };
   }
 }
 
 function deleteInventoryItem(id) {
+  Logger.log(`--- DEBUG: deleteInventoryItem DIMULAI dengan id=${id} ---`);
+  Logger.log(`PERINGATAN: Fungsi deleteInventoryItem dipanggil. Ini menghapus dari MASTER ALAT.`);
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
+    
     const rowToDelete = parseInt(id) + 1;
     
+    Logger.log(`DEBUG: Baris yang akan dihapus di sheet INVENTORY adalah: ${rowToDelete}`);
+    
     if (rowToDelete > 1) {
+      Logger.log(`DEBUG: Akan memanggil sheet.deleteRow(${rowToDelete}) pada sheet INVENTORY`);
       sheet.deleteRow(rowToDelete);
+      Logger.log(`DEBUG: Berhasil menghapus baris ${rowToDelete} dari sheet INVENTORY`);
       return { success: true, message: "Item berhasil dihapus" };
+    } else {
+      return { success: false, message: "ID baris tidak valid untuk dihapus" };
     }
-    return { success: false, message: "ID baris tidak valid" };
   } catch (e) {
+    Logger.log(`ERROR: Exception di deleteInventoryItem: ${e.toString()}`);
     return { success: false, message: "Gagal menghapus item: " + e.message };
   }
 }
@@ -469,53 +482,94 @@ function updateAlatMasuk(id, transaction) {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.ALAT_MASUK);
+    
     const rowToUpdate = parseInt(id) + 1;
     
+    // Get old quantity to adjust stock
     const oldData = sheet.getRange(rowToUpdate, 1, 1, 6).getValues()[0];
     const oldQuantity = oldData[4];
     const itemCode = oldData[2];
     
+    Logger.log(`Memperbarui Alat Masuk di baris: ${rowToUpdate}`);
+    
     if (rowToUpdate > 1) {
+      // --- PERBAIKAN UTAMA: Format tanggal dengan benar ---
       const dateParts = transaction.date.split('-');
-      const dateObject = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-      const formattedDate = Utilities.formatDate(dateObject, spreadsheet.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+      const year = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const day = parseInt(dateParts[2], 10);
+      const dateObject = new Date(year, month, day);
+      
+      const timeZone = spreadsheet.getSpreadsheetTimeZone();
+      const formattedDate = Utilities.formatDate(dateObject, timeZone, 'yyyy-MM-dd');
 
+      // Gunakan setValues untuk MEMPERBARUI
       sheet.getRange(rowToUpdate, 1, 1, 6).setValues([[
-        transaction.transactionId, formattedDate, transaction.itemCode,
-        transaction.itemName, transaction.quantity, transaction.supplier
+        transaction.transactionId,
+        formattedDate, // Gunakan tanggal yang sudah benar
+        transaction.itemCode,
+        transaction.itemName,
+        transaction.quantity,
+        transaction.supplier
       ]]);
       
+      // Adjust inventory stock
       const quantityDiff = transaction.quantity - oldQuantity;
       updateInventoryStock(itemCode, quantityDiff, "in");
       
       return { success: true, message: "Transaksi berhasil diperbarui" };
+    } else {
+      return { success: false, message: "ID baris tidak valid untuk diperbarui" };
     }
-    return { success: false, message: "ID baris tidak valid" };
   } catch (e) {
+    Logger.log(`Error memperbarui alat masuk: ${e.toString()}`);
     return { success: false, message: "Gagal memperbarui transaksi: " + e.message };
   }
 }
 
 function deleteAlatMasuk(id) {
+  Logger.log(`--- DEBUG: deleteAlatMasuk DIMULAI dengan id=${id} ---`);
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.ALAT_MASUK);
+    
     const rowToDelete = parseInt(id) + 1;
     
-    if (rowToDelete <= 1) return { success: false, message: "ID baris tidak valid" };
+    Logger.log(`DEBUG: Baris yang akan dihapus di sheet ALAT MASUK adalah: ${rowToDelete}`);
     
+    if (rowToDelete <= 1) {
+      Logger.log(`ERROR: ID baris tidak valid (${rowToDelete})`);
+      return { success: false, message: "ID baris tidak valid untuk dihapus" };
+    }
+    
+    // Ambil data dari baris yang akan dihapus SEBELUM dihapus
     const data = sheet.getRange(rowToDelete, 1, 1, 6).getValues()[0];
     const quantity = parseInt(data[4]) || 0;
     const itemCode = data[2];
     
-    sheet.deleteRow(rowToDelete);
-    const stockUpdateResult = updateInventoryStock(itemCode, -quantity, "in");
+    Logger.log(`DEBUG: Data dari baris yang dihapus: ${JSON.stringify(data)}`);
+    Logger.log(`DEBUG: ItemCode=${itemCode}, Quantity=${quantity}`);
     
+    // HAPUS baris transaksi dari sheet ALAT MASUK
+    Logger.log(`DEBUG: Akan memanggil sheet.deleteRow(${rowToDelete}) pada sheet ALAT MASUK`);
+    sheet.deleteRow(rowToDelete);
+    Logger.log(`DEBUG: Berhasil menghapus baris ${rowToDelete} dari sheet ALAT MASUK`);
+
+    // Perbarui stok di sheet INVENTORY dengan mengurangi jumlah alat yang masuk
+    Logger.log(`DEBUG: Akan memanggil updateInventoryStock('${itemCode}', ${-quantity}, 'in')`);
+    const stockUpdateResult = updateInventoryStock(itemCode, -quantity, "in");
+    Logger.log(`DEBUG: Hasil dari updateInventoryStock: ${JSON.stringify(stockUpdateResult)}`);
+
     if (!stockUpdateResult.success) {
-      return { success: true, message: "Transaksi dihapus, error stok: " + stockUpdateResult.message };
+      Logger.log(`ERROR: Gagal memperbarui stok saat menghapus transaksi masuk: ${stockUpdateResult.message}`);
+      return { success: true, message: "Transaksi dihapus, tetapi terjadi kesalahan saat memperbarui stok: " + stockUpdateResult.message };
     }
-    return { success: true, message: "Transaksi dihapus dan stok dikembalikan" };
+    
+    Logger.log(`--- DEBUG: deleteAlatMasuk SELESAI ---`);
+    return { success: true, message: "Transaksi berhasil dihapus dan stok dikembalikan." };
+
   } catch (e) {
+    Logger.log(`ERROR: Exception di deleteAlatMasuk: ${e.toString()}`);
     return { success: false, message: "Gagal menghapus transaksi: " + e.message };
   }
 }
@@ -625,29 +679,46 @@ function updateAlatKeluar(id, transaction) {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.ALAT_KELUAR);
+    
     const rowToUpdate = parseInt(id) + 1;
     
+    // Get old quantity to adjust stock
     const oldData = sheet.getRange(rowToUpdate, 1, 1, 5).getValues()[0];
     const oldQuantity = oldData[4];
     const itemCode = oldData[2];
     
+    Logger.log(`Memperbarui Alat Keluar di baris: ${rowToUpdate}`);
+    
     if (rowToUpdate > 1) {
+      // --- PERBAIKAN UTAMA: Format tanggal dengan benar ---
       const dateParts = transaction.date.split('-');
-      const dateObject = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-      const formattedDate = Utilities.formatDate(dateObject, spreadsheet.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+      const year = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const day = parseInt(dateParts[2], 10);
+      const dateObject = new Date(year, month, day);
+      
+      const timeZone = spreadsheet.getSpreadsheetTimeZone();
+      const formattedDate = Utilities.formatDate(dateObject, timeZone, 'yyyy-MM-dd');
 
+      // Gunakan setValues untuk MEMPERBARUI
       sheet.getRange(rowToUpdate, 1, 1, 5).setValues([[
-        transaction.transactionId, formattedDate, transaction.itemCode,
-        transaction.itemName, transaction.quantity
+        transaction.transactionId,
+        formattedDate, // Gunakan tanggal yang sudah benar
+        transaction.itemCode,
+        transaction.itemName,
+        transaction.quantity
       ]]);
       
+      // Adjust inventory stock
       const quantityDiff = transaction.quantity - oldQuantity;
       updateInventoryStock(itemCode, quantityDiff, "out");
 
       return { success: true, message: "Transaksi berhasil diperbarui" };
+    } else {
+      return { success: false, message: "ID baris tidak valid untuk diperbarui" };
     }
-    return { success: false, message: "ID baris tidak valid" };
   } catch (e) {
+    Logger.log(`Error memperbarui alat keluar: ${e.toString()}`);
     return { success: false, message: "Gagal memperbarui transaksi: " + e.message };
   }
 }
@@ -656,53 +727,93 @@ function deleteAlatKeluar(id) {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet.getSheetByName(SHEET_NAMES.ALAT_KELUAR);
+    
     const rowToDelete = parseInt(id) + 1;
 
-    if (rowToDelete <= 1) return { success: false, message: "ID baris tidak valid" };
+    if (rowToDelete <= 1) {
+      return { success: false, message: "ID baris tidak valid untuk dihapus" };
+    }
     
+    // Kembalikan stok sebelum menghapus
     const data = sheet.getRange(rowToDelete, 1, 1, 5).getValues()[0];
     const quantity = parseInt(data[4]) || 0;
     const itemCode = data[2];
     
+    Logger.log(`Menghapus Alat Keluar di baris: ${rowToDelete}, Item: ${itemCode}, Qty: ${quantity}`);
+    
+    // Hapus baris transaksi
     sheet.deleteRow(rowToDelete);
+
+    // Perbarui stok (tambah kembali stok yang keluar)
     const stockUpdateResult = updateInventoryStock(itemCode, quantity, "out");
 
     if (!stockUpdateResult.success) {
-      return { success: true, message: "Transaksi dihapus, error stok: " + stockUpdateResult.message };
+      Logger.log(`Gagal memperbarui stok saat menghapus transaksi keluar: ${stockUpdateResult.message}`);
+      return { success: true, message: "Transaksi dihapus, tetapi terjadi kesalahan saat memperbarui stok: " + stockUpdateResult.message };
     }
-    return { success: true, message: "Transaksi dihapus dan stok dikembalikan" };
+    
+    return { success: true, message: "Transaksi berhasil dihapus dan stok dikembalikan." };
+
   } catch (e) {
+    Logger.log(`Error menghapus alat keluar: ${e.toString()}`);
     return { success: false, message: "Gagal menghapus transaksi: " + e.message };
   }
 }
 
 function updateInventoryStock(itemCode, quantity, type) {
+  Logger.log(`--- DEBUG: updateInventoryStock DIMULAI ---`);
+  Logger.log(`DEBUG: itemCode=${itemCode}, quantity=${quantity}, type=${type}`);
+  
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
 
-  if (!sheet) return { success: false, message: "Sheet Inventory tidak ditemukan" };
+  if (!sheet) {
+    Logger.log('ERROR: Sheet "Inventory" tidak ditemukan saat mencoba memperbarui stok untuk ' + itemCode);
+    return { success: false, message: "Sheet Inventory tidak ditemukan" };
+  }
   
   const data = sheet.getDataRange().getValues();
   let itemFound = false;
+  let finalStock = 0;
+  let rowToUpdate = -1;
 
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === itemCode) {
       itemFound = true;
-      const rowToUpdate = i + 1;
+      rowToUpdate = i + 1; // Simpan nomor baris aktual
       const currentStock = parseInt(data[i][3]) || 0;
-      let newStock = (type === "in") ? currentStock + quantity : currentStock - quantity;
+      let newStock;
+
+      if (type === "in") {
+        newStock = currentStock + quantity;
+      } else {
+        newStock = currentStock - quantity;
+      }
       
-      if (newStock < 0) newStock = 0;
+      if (newStock < 0) {
+        Logger.log(`WARNING: Stok untuk ${itemCode} akan menjadi negatif (${newStock}). Stok diset ke 0.`);
+        newStock = 0;
+      }
+
+      finalStock = newStock;
       
+      Logger.log(`DEBUG: Ditemukan item ${itemCode} di baris ${rowToUpdate}. Stok saat ini: ${currentStock}, stok baru: ${newStock}.`);
+      
+      // PERBAIKAN: HANYA MEMPERBARUI SATU SEL (KOLOM STOK), BUKAN MENGHAPUS BARIS
+      // Ini adalah operasi yang aman dan tidak akan menghapus data alat.
       sheet.getRange(rowToUpdate, 4).setValue(newStock);
+      Logger.log(`DEBUG: Berhasil memperbarui stok di baris ${rowToUpdate}, kolom 4.`);
       break;
     }
   }
 
   if (!itemFound) {
-    return { success: false, message: `Alat ${itemCode} tidak ditemukan di master data.` };
+    Logger.log(`ERROR: Alat dengan kode '${itemCode}' tidak ditemukan di sheet Inventory. Stok tidak diperbarui.`);
+    return { success: false, message: `Alat dengan kode ${itemCode} tidak ditemukan di master data.` };
   }
-  return { success: true, message: `Stok ${itemCode} berhasil diperbarui.` };
+
+  Logger.log(`--- DEBUG: updateInventoryStock SELESAI ---`);
+  return { success: true, message: `Stok untuk ${itemCode} berhasil diperbarui menjadi ${finalStock}.` };
 }
 
 // CRUD functions for Supplier
@@ -725,7 +836,6 @@ function getSupplierData() {
   return result;
 }
 
-/*
 function addSupplier(supplier) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.SUPPLIER);
@@ -748,7 +858,6 @@ function addSupplier(supplier) {
   
   return { success: true, message: "Supplier added successfully", supplierId: supplier.supplierId };
 }
-*/
 
 function updateSupplier(id, supplier) {
   try {
@@ -994,7 +1103,6 @@ function updateLaporanDetails(id, details) {
 
 
 // CRUD functions for Kategori
-/*
 function getKategoriData() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.KATEGORI);
@@ -1011,9 +1119,7 @@ function getKategoriData() {
   
   return result;
 }
-*/
 
-/*
 function addKategori(kategori) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.KATEGORI);
@@ -1034,7 +1140,6 @@ function addKategori(kategori) {
   
   return { success: true, message: "Kategori added successfully", kategoriId: kategori.kategoriId };
 }
-*/
 
 function updateKategori(id, kategori) {
   try {
@@ -1081,7 +1186,6 @@ function deleteKategori(id) {
   }
 }
 
-/*
 function getUserData() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.USER);
@@ -1115,9 +1219,7 @@ function addUser(user) {
   
   return { success: true, message: "User added successfully" };
 }
-*/
 
-/*
 function updateUser(id, user) {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -1164,10 +1266,8 @@ function deleteUser(id) {
     return { success: false, message: "Gagal menghapus user: " + e.message };
   }
 }
-*/
 
 
-/*
 function getSummaryData(filterType, startDate, endDate) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   
@@ -1341,9 +1441,7 @@ function getSummaryData(filterType, startDate, endDate) {
   
   return summary;
 }
-*/
 
-/*
 function getChartData(chartType, filterType, startDate, endDate) {
   try {
     Logger.log(`getChartData called with chartType=${chartType}, filterType=${filterType}, startDate=${startDate}, endDate=${endDate}`);
@@ -1624,10 +1722,8 @@ function getChartData(chartType, filterType, startDate, endDate) {
     throw error;
   }
 }
-*/
 
 // Search functions
-/*
 function searchInventory(query) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
@@ -1788,13 +1884,11 @@ function searchUser(query) {
   }
   return results;
 }
-*/
 
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-/*
 function getInventorySummary() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheetByName(SHEET_NAMES.INVENTORY);
@@ -1854,8 +1948,6 @@ function getInventorySummary() {
     totalItems: uniqueItems.size  // PERBAIKAN: Kembalikan jumlah item unik
   };
 }
-*/
-/*
 function exportToExcel(sheetName, data, pageTitle) {
   try {
     // Logger untuk debugging
@@ -1976,9 +2068,7 @@ function exportToExcel(sheetName, data, pageTitle) {
     };
   }
 }
-*/
 
-/*
 function getRingkasanKeuntungan() {
   return {
     totalKeuntungan: calculateTotalKeuntunganFromSheet()
@@ -2024,7 +2114,6 @@ function calculateTotalKeuntunganFromSheet() {
   
   return totalKeuntungan;
 }
-*/
 
 // Fungsi pembantu untuk format tanggal untuk spreadsheet
 function formatDateForSpreadsheet(date) {
