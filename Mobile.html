@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Masuk - Mobile</title>
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fb;
+            color: #212529;
+            padding-bottom: 80px;
+            /* Space for FAB */
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            color: white;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        /* Search & Filter */
+        .search-section {
+            padding: 12px 16px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4361ee;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Stats */
+        .stats-container {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+        }
+
+        .stat-card {
+            min-width: 100px;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-card.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stat-card.process {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .stat-card.done {
+            background: #d1f2e1;
+            color: #0f5132;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        /* Cards Container */
+        .cards-container {
+            padding: 12px 16px;
+        }
+
+        /* Report Card */
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .card-id {
+            font-size: 12px;
+            font-weight: 700;
+            color: #4361ee;
+        }
+
+        .card-date {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #212529;
+        }
+
+        .card-code {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 12px;
+        }
+
+        .card-info {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            font-size: 13px;
+        }
+
+        .info-label {
+            min-width: 80px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #212529;
+            flex: 1;
+        }
+
+        .card-keluhan {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.waiting {
+            background: #ffbe0b;
+            color: #000;
+        }
+
+        .status-badge.process {
+            background: #4361ee;
+            color: #fff;
+        }
+
+        .status-badge.done {
+            background: #06ffa5;
+            color: #000;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .btn-start {
+            background: #4361ee;
+            color: white;
+        }
+
+        .btn-start:active {
+            background: #3651d4;
+            transform: scale(0.98);
+        }
+
+        .btn-complete {
+            background: #06ffa5;
+            color: #000;
+        }
+
+        .btn-complete:active {
+            background: #05e594;
+            transform: scale(0.98);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4361ee;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .stats-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .stats-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title">
+            📑 Laporan Masuk
+        </div>
+        <div class="header-subtitle" id="headerSubtitle">Memuat data...</div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-section">
+        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Cari laporan...">
+        <select class="filter-select" id="statusFilter">
+            <option value="">Semua Status</option>
+            <option value="Waiting" selected>⏳ Waiting</option>
+            <option value="On Process">⚙️ On Process</option>
+            <option value="Done">✅ Done</option>
+        </select>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-container">
+        <div class="stat-card waiting">
+            <div class="stat-number" id="statWaiting">0</div>
+            <div class="stat-label">Waiting</div>
+        </div>
+        <div class="stat-card process">
+            <div class="stat-number" id="statProcess">0</div>
+            <div class="stat-label">On Process</div>
+        </div>
+        <div class="stat-card done">
+            <div class="stat-number" id="statDone">0</div>
+            <div class="stat-label">Done</div>
+        </div>
+    </div>
+
+    <!-- Cards Container -->
+    <div class="cards-container" id="cardsContainer">
+        <!-- Cards will be rendered here -->
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻</button>
+
+    <!-- JS Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let allData = [];
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            loadData();
+
+            // Setup event listeners
+            document.getElementById('searchInput').addEventListener('input', filterData);
+            document.getElementById('statusFilter').addEventListener('change', filterData);
+        });
+
+        function loadData() {
+            showLoading();
+
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    hideLoading();
+                    allData = data.reverse(); // Newest first
+                    updateStats();
+                    checkLoginStatus(); // Will trigger renderCards(allData)
+                    updateHeaderSubtitle();
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+                })
+                .getLaporanData();
+        }
+
+        // Check Login Status (simulated from sessionStorage like LaporanMasuk.html)
+        function checkLoginStatus() {
+            const userStr = sessionStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+            }
+            // Apply current filter (which corresponds to default 'Waiting')
+            filterData();
+        }
+
+        function isAdmin() {
+            if (currentUser && currentUser.role === 'Admin') return true;
+            // Fallback for direct usage/demo as per LaporanMasuk.html
+            return true;
+        }
+
+        function updateStats() {
+            const waiting = allData.filter(d => d.status === 'Waiting').length;
+            const process = allData.filter(d => d.status === 'On Process').length;
+            const done = allData.filter(d => d.status === 'Done').length;
+
+            document.getElementById('statWaiting').textContent = waiting;
+            document.getElementById('statProcess').textContent = process;
+            document.getElementById('statDone').textContent = done;
+        }
+
+        function updateHeaderSubtitle() {
+            const total = allData.length;
+            document.getElementById('headerSubtitle').textContent = `Total ${total} laporan`;
+        }
+
+        function renderCards(data) {
+            const container = document.getElementById('cardsContainer');
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-text">Tidak ada data laporan</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.map(item => {
+                const statusClass = item.status === 'Waiting' ? 'waiting' :
+                    item.status === 'On Process' ? 'process' : 'done';
+
+                let actionButtons = '';
+                if (isAdmin()) {
+                    if (item.status === 'Waiting') {
+                        actionButtons = `<button class="action-btn btn-start" onclick="updateStatus('${item.laporanId}', '${item.id}', 'On Process')">⚙️ Mulai</button>`;
+                    } else if (item.status === 'On Process') {
+                        actionButtons = `<button class="action-btn btn-complete" onclick="updateStatus('${item.laporanId}', '${item.id}', 'Done')">✅ Selesai</button>`;
+                    }
+                }
+
+                return `
+                    <div class="report-card">
+                        <div class="card-header">
+                            <div class="card-id">#${item.laporanId}</div>
+                            <div class="card-date">${item.tanggal || '-'}</div>
+                        </div>
+                        
+                        <div class="card-title">${item.alat}</div>
+                        <div class="card-code">${item.kode || ''}</div>
+                        
+                        <div class="card-info">
+                            <div class="info-row">
+                                <div class="info-label">Pelapor</div>
+                                <div class="info-value">${item.pelapor}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Ruangan</div>
+                                <div class="info-value">${item.ruangan}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Waktu</div>
+                                <div class="info-value">${item.waktuPengerjaan || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-keluhan">
+                            <strong>Keluhan:</strong> ${item.keluhan}
+                        </div>
+                        
+                        <div class="card-footer">
+                            <span class="status-badge ${statusClass}">${item.status}</span>
+                            ${actionButtons}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filtered = allData.filter(item => {
+                const matchesSearch =
+                    (item.laporanId && item.laporanId.toLowerCase().includes(searchTerm)) ||
+                    (item.alat && item.alat.toLowerCase().includes(searchTerm)) ||
+                    (item.pelapor && item.pelapor.toLowerCase().includes(searchTerm)) ||
+                    (item.ruangan && item.ruangan.toLowerCase().includes(searchTerm)) ||
+                    (item.keluhan && item.keluhan.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = statusFilter === '' || item.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderCards(filtered);
+        }
+
+        function updateStatus(displayId, rowId, newStatus) {
+            let confirmTitle = '';
+            let confirmText = '';
+            let confirmButtonText = '';
+            let confirmButtonColor = '';
+
+            if (newStatus === 'On Process') {
+                confirmTitle = 'Mulai Pengerjaan?';
+                confirmText = `Laporan #${displayId} akan ditandai sedang dikerjakan.`;
+                confirmButtonText = 'Ya, Mulai Service';
+                confirmButtonColor = '#4361ee';
+            } else if (newStatus === 'Done') {
+                confirmTitle = 'Selesaikan Laporan?';
+                confirmText = `Laporan #${displayId} akan ditandai selesai.`;
+                confirmButtonText = 'Ya, Selesai';
+                confirmButtonColor = '#06ffa5';
+            }
+
+            Swal.fire({
+                title: confirmTitle,
+                text: confirmText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: confirmButtonColor,
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    showLoading();
+
+                    google.script.run
+                        .withSuccessHandler(function (response) {
+                            hideLoading();
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadData(); // Reload all data
+                            } else {
+                                Swal.fire('Gagal!', response.message, 'error');
+                            }
+                        })
+                        .withFailureHandler(function (error) {
+                            hideLoading();
+                            Swal.fire('Error', error.message, 'error');
+                        })
+                        .updateLaporanStatus(rowId, newStatus);
+                }
+            });
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

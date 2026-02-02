@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventory - Mobile ATEM</title>
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fb;
+            color: #212529;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            color: white;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        /* Search & Filter */
+        .search-section {
+            padding: 12px 16px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4361ee;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Cards Container */
+        .cards-container {
+            padding: 12px 16px;
+        }
+
+        /* Report Card */
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .card-id {
+            font-size: 12px;
+            font-weight: 700;
+            color: #4361ee;
+        }
+
+        .card-date {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #212529;
+        }
+
+        .card-code {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 12px;
+        }
+
+        .card-info {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            font-size: 13px;
+        }
+
+        .info-label {
+            min-width: 80px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #212529;
+            flex: 1;
+        }
+
+        .card-keluhan {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.waiting {
+            background: #ffbe0b;
+            color: #000;
+        }
+
+        .status-badge.process {
+            background: #4361ee;
+            color: #fff;
+        }
+
+        .status-badge.done {
+            background: #06ffa5;
+            color: #000;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .btn-update {
+            background: #4361ee;
+            color: white;
+        }
+
+        .btn-update:active {
+            background: #3651d4;
+            transform: scale(0.98);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4361ee;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title">
+            👷 Mobile ATEM
+        </div>
+        <div class="header-subtitle" id="headerSubtitle">Memuat data...</div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-section">
+        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Cari ID, Alat, Pelapor...">
+        <select class="filter-select" id="statusFilter">
+            <option value="On Process" selected>⚙️ On Process (Task Saya)</option>
+            <option value="Waiting">⏳ Waiting</option>
+            <option value="Done">✅ Done</option>
+            <option value="">Semua Status</option>
+        </select>
+    </div>
+
+    <!-- Cards Container -->
+    <div class="cards-container" id="cardsContainer">
+        <!-- Cards will be rendered here -->
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻</button>
+
+    <!-- JS Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let allData = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            loadData();
+
+            // Setup event listeners
+            document.getElementById('searchInput').addEventListener('input', filterData);
+            document.getElementById('statusFilter').addEventListener('change', filterData);
+        });
+
+        function loadData() {
+            showLoading();
+
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    hideLoading();
+                    allData = data.reverse(); // Newest first
+                    updateHeaderSubtitle();
+                    filterData(); // Apply initial filter
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+                })
+                .getLaporanData();
+        }
+
+        function updateHeaderSubtitle() {
+            const total = allData.length;
+            document.getElementById('headerSubtitle').textContent = `Total ${total} laporan`;
+        }
+
+        function renderCards(data) {
+            const container = document.getElementById('cardsContainer');
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👷</div>
+                        <div class="empty-text">Tidak ada data untuk ditampilkan</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.map(item => {
+                const statusClass = item.status === 'Waiting' ? 'waiting' :
+                    item.status === 'On Process' ? 'process' : 'done';
+
+                // Escape for onclick
+                const identifikasi = (item.identifikasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const tindakan = (item.tindakan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const rekomendasi = (item.rekomendasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const catatan = (item.catatan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const keluhan = (item.keluhan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+                let actionButton = '';
+                // Logic: Button "Update" always appears for On Process to allow adding details
+                // You might also want to allow picking up "Waiting" tasks here if the user is an engineer
+                if (item.status === 'On Process') {
+                    actionButton = `<button class="action-btn btn-update" onclick="openUpdateModal('${item.id}', '${item.laporanId}', '${identifikasi}', '${tindakan}', '${rekomendasi}', '${catatan}')">✏️ Update Pengerjaan</button>`;
+                } else if (item.status === 'Waiting') {
+                    // Adding this to "Take Job" if needed, similar to LaporanMasuk
+                    // But Atem.html didn't explicitly show a button for Waiting (it filtered them out). 
+                    // I'll leave it as informational or add a "Kerjakan" button if desired?
+                    // Based on request "fungsi tetap berjalan" and Atem.html logic (which is updating process), 
+                    // I will focus on the Update Modal logic.
+                    actionButton = `<span class="text-muted small">Status Waiting (Ambil di Dashboard Admin)</span>`;
+                }
+
+                return `
+                    <div class="report-card">
+                        <div class="card-header">
+                            <div class="card-id">#${item.laporanId}</div>
+                            <div class="card-date">${item.tanggal || '-'}</div>
+                        </div>
+                        
+                        <div class="card-title">${item.alat}</div>
+                        <div class="card-code">${item.kode || ''}</div>
+                        
+                        <div class="card-info">
+                            <div class="info-row">
+                                <div class="info-label">Pelapor</div>
+                                <div class="info-value">${item.pelapor}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Ruangan</div>
+                                <div class="info-value">${item.ruangan}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-keluhan">
+                            <strong>Keluhan:</strong> ${item.keluhan}
+                        </div>
+                        
+                        <div class="card-footer">
+                            <span class="status-badge ${statusClass}">${item.status}</span>
+                            ${actionButton}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filtered = allData.filter(item => {
+                const matchesSearch =
+                    (item.laporanId && item.laporanId.toLowerCase().includes(searchTerm)) ||
+                    (item.alat && item.alat.toLowerCase().includes(searchTerm)) ||
+                    (item.pelapor && item.pelapor.toLowerCase().includes(searchTerm)) ||
+                    (item.ruangan && item.ruangan.toLowerCase().includes(searchTerm)) ||
+                    (item.keluhan && item.keluhan.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = statusFilter === '' || item.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderCards(filtered);
+        }
+
+        function openUpdateModal(id, laporanId, identifikasi, tindakan, rekomendasi, catatan) {
+            Swal.fire({
+                title: `Update Laporan #${laporanId}`,
+                html: `
+                    <style>
+                        .swal2-input-label { align-self: flex-start; margin-top: 10px; font-size: 14px; font-weight: 600; }
+                        .swal2-textarea { font-size: 14px; margin-top: 5px; }
+                        .checkbox-wrapper { display: flex; align-items: center; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+                    </style>
+                    <div style="text-align: left;">
+                        <label class="swal2-input-label">Identifikasi Masalah</label>
+                        <textarea id="swalIdentifikasi" class="swal2-textarea" placeholder="Hasil identifikasi...">${identifikasi}</textarea>
+                        
+                        <label class="swal2-input-label">Tindakan Perbaikan</label>
+                        <textarea id="swalTindakan" class="swal2-textarea" placeholder="Tindakan yang dilakukan...">${tindakan}</textarea>
+                        
+                        <label class="swal2-input-label">Rekomendasi</label>
+                        <textarea id="swalRekomendasi" class="swal2-textarea" placeholder="Rekomendasi...">${rekomendasi}</textarea>
+                        
+                        <label class="swal2-input-label">Catatan</label>
+                        <textarea id="swalCatatan" class="swal2-textarea" placeholder="Catatan tambahan...">${catatan}</textarea>
+                        
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="swalMarkAsDone" style="width: 20px; height: 20px; margin-right: 10px;">
+                            <label for="swalMarkAsDone" style="font-weight: bold; color: #06ffa5; margin:0;">Tandai Selesai (Done)</label>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan Update',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#4361ee',
+                width: '90%',
+                preConfirm: () => {
+                    const identifikasi = document.getElementById('swalIdentifikasi').value;
+                    const tindakan = document.getElementById('swalTindakan').value;
+                    const rekomendasi = document.getElementById('swalRekomendasi').value;
+                    const catatan = document.getElementById('swalCatatan').value;
+                    const markAsDone = document.getElementById('swalMarkAsDone').checked;
+
+                    if (markAsDone && !tindakan) {
+                        Swal.showValidationMessage('Isi tindakan jika ingin menyelesaikan laporan!');
+                        return false;
+                    }
+
+                    return { identifikasi, tindakan, rekomendasi, catatan, markAsDone };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitUpdate(id, result.value);
+                }
+            });
+        }
+
+        function submitUpdate(id, details) {
+            showLoading();
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    hideLoading();
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadData();
+                    } else {
+                        Swal.fire('Gagal!', response.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    hideLoading();
+                    Swal.fire('Error', error.message, 'error');
+                })
+                .updateLaporanDetails(id, details);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

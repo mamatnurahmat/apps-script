@@ -12,18 +12,32 @@ const SHEET_NAMES = {
 };
 
 function doGet(e) {
-  if (e.parameter.page === 'admin') {
+  if (e.parameter.page === 'admin-web') {
       return HtmlService.createHtmlOutputFromFile('LaporanMasuk')
         .setTitle('Laporan Masuk - Simantools')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
-  
-  if (e.parameter.page === 'atem') {
+
+  if (e.parameter.page === 'admin') {
+      return HtmlService.createHtmlOutputFromFile('Mobile')
+        .setTitle('Laporan Masuk - Simantools')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
+
+  if (e.parameter.page === 'atem-web') {
       return HtmlService.createHtmlOutputFromFile('Atem')
         .setTitle('ATEM - Laporan Masuk')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
-  
+
+  if (e.parameter.page === 'atem') {
+      return HtmlService.createHtmlOutputFromFile('MobileAtem')
+        .setTitle('ATEM - Laporan Masuk')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
+
   if (e.parameter.page === 'index') {
        return HtmlService.createHtmlOutputFromFile('Index')
       .setTitle('Sistem Inventory')
