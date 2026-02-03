@@ -239,9 +239,9 @@ function setupHeaders() {
   // Pastikan header lengkap: A-M
   // A:ID, B:Alat, C:Kode, D:Keluhan, E:Pelapor, F:Ruangan, G:Tanggal, H:Status, I:Waktu Pengerjaan, J:Identifikasi, K:Tindakan, L:Rekomendasi, M:Catatan
   if (laporanSheet) {
-      if (laporanSheet.getLastColumn() < 13) {
-          laporanSheet.getRange("A1:M1").setValues([["ID Laporan", "Alat", "Kode", "Keluhan", "Pelapor", "Ruangan", "Tanggal Laporan", "Status", "Waktu Pengerjaan", "Identifikasi", "Tindakan", "Rekomendasi", "Catatan"]]);
-          laporanSheet.getRange("A1:M1").setFontWeight("bold");
+      if (laporanSheet.getLastColumn() < 14) {
+          laporanSheet.getRange("A1:N1").setValues([["ID Laporan", "Alat", "Kode", "Keluhan", "Pelapor", "Ruangan", "Tanggal Laporan", "Status", "Waktu Pengerjaan", "Identifikasi", "Tindakan", "Rekomendasi", "Catatan", "Email Pelapor"]]);
+          laporanSheet.getRange("A1:N1").setFontWeight("bold");
       }
   }
 
@@ -942,7 +942,13 @@ function addLaporan(laporan) {
     laporan.pelapor,
     laporan.ruangan,
     timestamp,
-    laporan.status
+    laporan.status,
+    "", // Waktu Pengerjaan
+    "", // Identifikasi
+    "", // Tindakan
+    "", // Rekomendasi
+    "", // Catatan
+    laporan.email || "" // Email Pelapor
   ]);
   
   // NOTIFIKASI: Laporan Baru Masuk
@@ -958,8 +964,25 @@ function addLaporan(laporan) {
   sendEmail('admin-atem', msgTitle, msgBody, adminUrl);
   
   // Kirim ke lapor-atem (Link ke default Lapor)
+  // Logic: Jika user isi email, gunakan email tsb. Jika tidak, gunakan default lapor-atem.
+  let laporRecipient = EMAIL_RECIPIENTS['lapor-atem'];
+  if (laporan.email && laporan.email.trim() !== "") {
+    laporRecipient = laporan.email;
+  }
+
   sendNtfy('lapor-atem', msgTitle, msgBody, 'clipboard', baseUrl);
-  sendEmail('lapor-atem', msgTitle, msgBody, baseUrl);
+  
+  // Manual sendEmail logic untuk support dynamic recipient
+  try {
+      let htmlBody = `<p>${msgBody.replace(/\n/g, '<br>')}</p>`;
+      if (baseUrl) {
+        htmlBody += `<p><a href="${baseUrl}">Klik di sini untuk membuka aplikasi</a></p>`;
+      }
+      GmailApp.sendEmail(laporRecipient, msgTitle, msgBody, { htmlBody: htmlBody });
+      Logger.log(`Email sent to ${laporRecipient} for topic lapor-atem`);
+  } catch (e) {
+      Logger.log(`Failed to send email to ${laporRecipient}: ${e.message}`);
+  }
 
   return { success: true, message: "Laporan berhasil dikirim", laporanId: laporan.laporanId };
 }
@@ -976,12 +999,15 @@ function updateLaporanStatus(id, newStatus) {
             
             const baseUrl = getBaseUrl();
 
-            // Jika status approval (On Process), catat waktu & kirim notif
+             // Jika status approval (On Process), catat waktu & kirim notif
             if (newStatus === 'On Process') {
                  const timeZone = spreadsheet.getSpreadsheetTimeZone();
                  const timestamp = Utilities.formatDate(new Date(), timeZone, 'yyyy-MM-dd HH:mm:ss');
                  sheet.getRange(rowToUpdate, 9).setValue(timestamp); // Column I is Waktu Pengerjaan (9)
                  
+                 // Ambil Email Pelapor dari Column N (14)
+                 const reporterEmail = sheet.getRange(rowToUpdate, 14).getValue();
+
                  // NOTIFIKASI: On Process
                  // Kirim ke lapor-atem dan team-atem
                  const title = `Laporan Diproses: ${laporanId}`;
@@ -989,10 +1015,28 @@ function updateLaporanStatus(id, newStatus) {
                  
                  // Link untuk team-atem
                  const atemUrl = baseUrl + "?page=atem";
+                 
+                 // Tentukan recipient untuk lapor-atem
+                 let laporRecipient = EMAIL_RECIPIENTS['lapor-atem'];
+                 if (reporterEmail && String(reporterEmail).trim() !== "") {
+                     laporRecipient = reporterEmail;
+                 }
 
                  // Link untuk lapor-atem (Default)
                  sendNtfy('lapor-atem', title, msg, 'hammer_and_wrench', baseUrl);
-                 sendEmail('lapor-atem', title, msg, baseUrl);
+                 
+                 // Manual sendEmail logic
+                 try {
+                      let htmlBody = `<p>${msg.replace(/\n/g, '<br>')}</p>`;
+                      if (baseUrl) {
+                        htmlBody += `<p><a href="${baseUrl}">Klik di sini untuk membuka aplikasi</a></p>`;
+                      }
+                      GmailApp.sendEmail(laporRecipient, title, msg, { htmlBody: htmlBody });
+                      Logger.log(`Email sent to ${laporRecipient} for topic lapor-atem (On Process)`);
+                 } catch (e) {
+                      Logger.log(`Failed to send email to ${laporRecipient}: ${e.message}`);
+                 }
+                 
                  sendNtfy('team-atem', title, msg, 'hammer_and_wrench,blue_circle', atemUrl);
                  sendEmail('team-atem', title, msg, atemUrl);
                  
@@ -1001,6 +1045,9 @@ function updateLaporanStatus(id, newStatus) {
             
             // Jika status Done via tombol biasa (jika ada)
             if (newStatus === 'Done') {
+                 // Ambil Email Pelapor dari Column N (14)
+                 const reporterEmail = sheet.getRange(rowToUpdate, 14).getValue();
+
                  // NOTIFIKASI: Done
                  const title = `Laporan Selesai: ${laporanId}`;
                  const msg = `Perbaikan telah selesai.\nStatus: Done`;
@@ -1008,8 +1055,26 @@ function updateLaporanStatus(id, newStatus) {
                  // Link untuk team-atem (untuk cek history)
                  const atemUrl = baseUrl + "?page=atem";
                  
+                 // Tentukan recipient untuk lapor-atem
+                 let laporRecipient = EMAIL_RECIPIENTS['lapor-atem'];
+                 if (reporterEmail && String(reporterEmail).trim() !== "") {
+                     laporRecipient = reporterEmail;
+                 }
+                 
                  sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
-                 sendEmail('lapor-atem', title, msg, baseUrl);
+                 
+                 // Manual sendEmail logic
+                 try {
+                      let htmlBody = `<p>${msg.replace(/\n/g, '<br>')}</p>`;
+                      if (baseUrl) {
+                        htmlBody += `<p><a href="${baseUrl}">Klik di sini untuk membuka aplikasi</a></p>`;
+                      }
+                      GmailApp.sendEmail(laporRecipient, title, msg, { htmlBody: htmlBody });
+                      Logger.log(`Email sent to ${laporRecipient} for topic lapor-atem (Done)`);
+                 } catch (e) {
+                      Logger.log(`Failed to send email to ${laporRecipient}: ${e.message}`);
+                 }
+                 
                  sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
                  sendEmail('team-atem', title, msg, atemUrl);
             }
@@ -1043,15 +1108,36 @@ function updateLaporanDetails(id, details) {
           
           // NOTIFIKASI: Done (via Modal)
           const laporanId = sheet.getRange(rowToUpdate, 1).getValue();
+          // Ambil Email Pelapor dari Column N (14)
+          const reporterEmail = sheet.getRange(rowToUpdate, 14).getValue();
+
           const title = `Laporan Selesai: ${laporanId}`;
           const msg = `Tindakan: ${details.tindakan}\nStatus: Done\nOleh Tim ATEM`;
           
           const baseUrl = getBaseUrl();
           const atemUrl = baseUrl + "?page=atem";
+          
+          // Tentukan recipient untuk lapor-atem
+          let laporRecipient = EMAIL_RECIPIENTS['lapor-atem'];
+          if (reporterEmail && String(reporterEmail).trim() !== "") {
+               laporRecipient = reporterEmail;
+          }
 
           // Kirim ke lapor-atem dan team-atem
           sendNtfy('lapor-atem', title, msg, 'white_check_mark', baseUrl);
-          sendEmail('lapor-atem', title, msg, baseUrl);
+          
+          // Manual sendEmail logic
+          try {
+              let htmlBody = `<p>${msg.replace(/\n/g, '<br>')}</p>`;
+              if (baseUrl) {
+                htmlBody += `<p><a href="${baseUrl}">Klik di sini untuk membuka aplikasi</a></p>`;
+              }
+              GmailApp.sendEmail(laporRecipient, title, msg, { htmlBody: htmlBody });
+              Logger.log(`Email sent to ${laporRecipient} for topic lapor-atem (Done via Modal)`);
+          } catch (e) {
+              Logger.log(`Failed to send email to ${laporRecipient}: ${e.message}`);
+          }
+          
           sendNtfy('team-atem', title, msg, 'white_check_mark,green_circle', atemUrl);
           sendEmail('team-atem', title, msg, atemUrl);
       }

@@ -33,6 +33,39 @@
             padding: 20px;
         }
 
+        @media (max-width: 576px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+                /* Align top on mobile */
+            }
+
+            .report-card {
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-body {
+                padding: 25px;
+                flex-grow: 1;
+                /* Push footer down if content is short */
+            }
+
+            .report-header {
+                padding: 40px 20px 30px;
+                /* More top padding for status bar area */
+                border-radius: 0;
+            }
+
+            .report-header::after {
+                border-radius: 20px 20px 0 0;
+                /* Slightly different curve on mobile */
+            }
+        }
+
         .report-card {
             background: white;
             border-radius: 20px;
@@ -180,6 +213,11 @@
                 </div>
 
                 <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="formEmail" placeholder="Email (Opsional)">
+                    <label for="formEmail"><i class="bi bi-envelope me-2"></i>Email (Opsional)</label>
+                </div>
+
+                <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="formRuangan" placeholder="Ruangan" required>
                     <label for="formRuangan"><i class="bi bi-geo-alt me-2"></i>Ruangan</label>
                 </div>
@@ -236,6 +274,7 @@
             // Get form values
             const laporan = {
                 pelapor: document.getElementById('formPelapor').value,
+                email: document.getElementById('formEmail').value,
                 ruangan: document.getElementById('formRuangan').value,
                 alat: document.getElementById('formAlat').value,
                 kode: document.getElementById('formKode').value,
