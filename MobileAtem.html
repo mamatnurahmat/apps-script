@@ -280,6 +280,52 @@
         .refresh-btn:active {
             transform: scale(0.95);
         }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .lightbox-img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
@@ -316,10 +362,27 @@
     <!-- Refresh Button -->
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻</button>
 
+    <!-- Lightbox Overlay -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img src="" alt="Full Screen Image" class="lightbox-img" id="lightboxImg">
+    </div>
+
     <!-- JS Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Lightbox Functions
+        function openLightbox(url) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            img.src = url;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
         let allData = [];
 
         // Initialize
@@ -415,6 +478,15 @@
                         <div class="card-keluhan">
                             <strong>Keluhan:</strong> ${item.keluhan}
                         </div>
+
+                        ${item.gambar ? `
+                        <div class="mb-2">
+                             <img src="${item.gambar}" alt="Foto Kerusakan" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openLightbox('${item.gambar}')">
+                             <div style="font-size: 11px; color: #6c757d; margin-top: 6px; text-align: center; font-style: italic;">
+                                <i class="bi bi-zoom-in"></i> Ketuk gambar untuk memperbesar
+                             </div>
+                        </div>
+                        ` : ''}
                         
                         <div class="card-footer">
                             <span class="status-badge ${statusClass}">${item.status}</span>
@@ -450,34 +522,90 @@
                 title: `Update Laporan #${laporanId}`,
                 html: `
                     <style>
-                        .swal2-input-label { align-self: flex-start; margin-top: 10px; font-size: 14px; font-weight: 600; }
-                        .swal2-textarea { font-size: 14px; margin-top: 5px; }
-                        .checkbox-wrapper { display: flex; align-items: center; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+                        .swal2-popup { 
+                            padding: 15px !important;
+                            max-height: 90vh !important;
+                            overflow-y: auto !important;
+                        }
+                        .swal2-html-container {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            overflow: visible !important;
+                        }
+                        .update-form-label { 
+                            display: block;
+                            text-align: left; 
+                            margin-top: 12px; 
+                            margin-bottom: 4px;
+                            font-size: 13px; 
+                            font-weight: 600; 
+                            color: #495057;
+                        }
+                        .update-form-textarea { 
+                            width: 100% !important;
+                            box-sizing: border-box !important;
+                            font-size: 14px !important; 
+                            padding: 10px !important;
+                            border: 2px solid #e9ecef !important;
+                            border-radius: 10px !important;
+                            resize: vertical !important;
+                            min-height: 70px !important;
+                            max-height: 120px !important;
+                            transition: border-color 0.2s !important;
+                        }
+                        .update-form-textarea:focus {
+                            outline: none !important;
+                            border-color: #4361ee !important;
+                        }
+                        .checkbox-wrapper { 
+                            display: flex; 
+                            align-items: center; 
+                            margin-top: 15px; 
+                            background: linear-gradient(135deg, #d1f2e1 0%, #a8e6cf 100%); 
+                            padding: 12px; 
+                            border-radius: 10px; 
+                        }
+                        .checkbox-wrapper input[type="checkbox"] {
+                            width: 22px;
+                            height: 22px;
+                            margin-right: 10px;
+                            accent-color: #06ffa5;
+                        }
+                        .checkbox-wrapper label {
+                            font-weight: 600;
+                            color: #0f5132;
+                            margin: 0;
+                            font-size: 14px;
+                        }
                     </style>
-                    <div style="text-align: left;">
-                        <label class="swal2-input-label">Identifikasi Masalah</label>
-                        <textarea id="swalIdentifikasi" class="swal2-textarea" placeholder="Hasil identifikasi...">${identifikasi}</textarea>
+                    <div>
+                        <label class="update-form-label">Identifikasi Masalah</label>
+                        <textarea id="swalIdentifikasi" class="update-form-textarea" placeholder="Hasil identifikasi...">${identifikasi}</textarea>
                         
-                        <label class="swal2-input-label">Tindakan Perbaikan</label>
-                        <textarea id="swalTindakan" class="swal2-textarea" placeholder="Tindakan yang dilakukan...">${tindakan}</textarea>
+                        <label class="update-form-label">Tindakan Perbaikan</label>
+                        <textarea id="swalTindakan" class="update-form-textarea" placeholder="Tindakan yang dilakukan...">${tindakan}</textarea>
                         
-                        <label class="swal2-input-label">Rekomendasi</label>
-                        <textarea id="swalRekomendasi" class="swal2-textarea" placeholder="Rekomendasi...">${rekomendasi}</textarea>
+                        <label class="update-form-label">Rekomendasi</label>
+                        <textarea id="swalRekomendasi" class="update-form-textarea" placeholder="Rekomendasi...">${rekomendasi}</textarea>
                         
-                        <label class="swal2-input-label">Catatan</label>
-                        <textarea id="swalCatatan" class="swal2-textarea" placeholder="Catatan tambahan...">${catatan}</textarea>
+                        <label class="update-form-label">Catatan</label>
+                        <textarea id="swalCatatan" class="update-form-textarea" placeholder="Catatan tambahan...">${catatan}</textarea>
                         
                         <div class="checkbox-wrapper">
-                            <input type="checkbox" id="swalMarkAsDone" style="width: 20px; height: 20px; margin-right: 10px;">
-                            <label for="swalMarkAsDone" style="font-weight: bold; color: #06ffa5; margin:0;">Tandai Selesai (Done)</label>
+                            <input type="checkbox" id="swalMarkAsDone">
+                            <label for="swalMarkAsDone">✅ Tandai Selesai (Done)</label>
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'Simpan Update',
+                confirmButtonText: '💾 Simpan',
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#4361ee',
-                width: '90%',
+                cancelButtonColor: '#6c757d',
+                width: '95%',
+                customClass: {
+                    popup: 'mobile-update-popup'
+                },
                 preConfirm: () => {
                     const identifikasi = document.getElementById('swalIdentifikasi').value;
                     const tindakan = document.getElementById('swalTindakan').value;

@@ -907,15 +907,37 @@ function getLaporanData() {
         tanggal: formattedDate,
         status: data[i][7],
         waktuPengerjaan: formattedWaktuPengerjaan,
+        waktuPengerjaan: formattedWaktuPengerjaan,
         identifikasi: data[i][9] || '',
         tindakan: data[i][10] || '',
         rekomendasi: data[i][11] || '',
-        catatan: data[i][12] || ''
+        catatan: data[i][12] || '',
+        email: data[i][13] || '',
+        catatan: data[i][12] || '',
+        email: data[i][13] || '',
+        gambar: data[i][14] ? formatImageUrl(data[i][14]) : '' // Format URL for display
       });
     }
   }
   
   return result;
+}
+
+// Helper to convert Drive View URL to Thumbnail URL for <img> tag
+function formatImageUrl(url) {
+  if (!url) return '';
+  try {
+    // Extract ID from https://drive.google.com/file/d/VIDEO_ID/view...
+    const idMatch = url.match(/\/d\/(.+?)\//);
+    if (idMatch && idMatch[1]) {
+      // Use thumbnail endpoint which is more reliable for <img>
+      return "https://drive.google.com/thumbnail?id=" + idMatch[1] + "&sz=w1000";
+    }
+    // Fallback if regex fails (e.g. unexpected format)
+    return url;
+  } catch (e) {
+    return url;
+  }
 }
 
 function addLaporan(laporan) {
