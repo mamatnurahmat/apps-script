@@ -237,6 +237,12 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label for="formGambar" class="form-label text-muted" style="font-size: 0.9rem;"><i
+                            class="bi bi-camera me-2"></i>Foto Kerusakan (Opsional)</label>
+                    <input class="form-control" type="file" id="formGambar" accept="image/*">
+                </div>
+
                 <div class="form-floating mb-4">
                     <textarea class="form-control" id="formKeluhan" placeholder="Deskripsi Masalah"
                         style="height: 100px" required></textarea>
@@ -271,40 +277,72 @@
             const btn = document.querySelector('.btn-submit');
             const loading = document.getElementById('loadingOverlay');
 
-            // Get form values
-            const laporan = {
-                pelapor: document.getElementById('formPelapor').value,
-                email: document.getElementById('formEmail').value,
-                ruangan: document.getElementById('formRuangan').value,
-                alat: document.getElementById('formAlat').value,
-                kode: document.getElementById('formKode').value,
-                keluhan: document.getElementById('formKeluhan').value
-            };
+            // Get form values (Moved inside submitLaporan)
 
-            // Show loading
+            // Disable button
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Mengirim...';
+
+            // Show loading overlay
             loading.style.display = 'flex';
 
-            // Call backend
-            google.script.run
-                .withSuccessHandler(function (response) {
-                    loading.style.display = 'none';
-                    if (response.success) {
-                        Swal.fire({
-                            title: 'Terkirim!',
-                            text: 'Laporan Anda berhasil dikirim dengan ID: ' + response.laporanId,
-                            icon: 'success',
-                            confirmButtonColor: '#4361ee'
-                        });
-                        document.getElementById('publicReportForm').reset();
-                    } else {
-                        Swal.fire('Gagal!', response.message, 'error');
-                    }
-                })
-                .withFailureHandler(function (error) {
-                    loading.style.display = 'none';
-                    Swal.fire('Error', error.message, 'error');
-                })
-                .addLaporan(laporan);
+            // Function to handle submission
+            const submitLaporan = (base64Image) => {
+                const laporan = {
+                    pelapor: document.getElementById('formPelapor').value,
+                    email: document.getElementById('formEmail').value,
+                    ruangan: document.getElementById('formRuangan').value,
+                    alat: document.getElementById('formAlat').value,
+                    kode: document.getElementById('formKode').value,
+                    keluhan: document.getElementById('formKeluhan').value,
+                    gambar: base64Image || null
+                };
+
+                google.script.run
+                    .withSuccessHandler(function (response) {
+                        loading.style.display = 'none';
+                        btn.disabled = false;
+                        btn.innerHTML = 'Kirim Laporan <i class="bi bi-send-fill ms-2"></i>';
+
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Terkirim!',
+                                text: 'Laporan Anda berhasil dikirim dengan ID: ' + response.laporanId,
+                                icon: 'success',
+                                confirmButtonColor: '#4361ee'
+                            });
+                            document.getElementById('publicReportForm').reset();
+                        } else {
+                            Swal.fire('Gagal!', response.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        loading.style.display = 'none';
+                        btn.disabled = false;
+                        btn.innerHTML = 'Kirim Laporan <i class="bi bi-send-fill ms-2"></i>';
+                        Swal.fire('Error', error.message, 'error');
+                    })
+                    .addLaporan(laporan);
+            };
+
+            // Check if file is selected
+            const fileInput = document.getElementById('formGambar');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Data = e.target.result.split(',')[1]; // Get base64 part
+                    const contentType = e.target.result.split(',')[0].split(':')[1].split(';')[0];
+                    submitLaporan({
+                        data: base64Data,
+                        mimeType: contentType,
+                        name: file.name
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                submitLaporan(null);
+            }
         });
     </script>
 </body>

@@ -200,8 +200,15 @@ function testEmailOnly() {
 
 // JALANKAN FUNGSI INI SEKALI UNTUK MEMBERIKAN IZIN (AUTHORIZATION)
 function forceAuth() {
+  // Trigger UrlFetch scope
   UrlFetchApp.fetch("https://www.google.com");
-  Logger.log("Authorization success!");
+  
+  // Trigger Drive Scope (Write Access)
+  // Membuat file sementara untuk memancing permintaan izin Write (https://www.googleapis.com/auth/drive)
+  const tempFile = DriveApp.createFile("temp_auth_trigger.txt", "Auth Trigger");
+  tempFile.setTrashed(true);
+  
+  Logger.log("Authorization success! Access to Drive (Write) granted.");
 }
 
 
@@ -239,9 +246,9 @@ function setupHeaders() {
   // Pastikan header lengkap: A-M
   // A:ID, B:Alat, C:Kode, D:Keluhan, E:Pelapor, F:Ruangan, G:Tanggal, H:Status, I:Waktu Pengerjaan, J:Identifikasi, K:Tindakan, L:Rekomendasi, M:Catatan
   if (laporanSheet) {
-      if (laporanSheet.getLastColumn() < 14) {
-          laporanSheet.getRange("A1:N1").setValues([["ID Laporan", "Alat", "Kode", "Keluhan", "Pelapor", "Ruangan", "Tanggal Laporan", "Status", "Waktu Pengerjaan", "Identifikasi", "Tindakan", "Rekomendasi", "Catatan", "Email Pelapor"]]);
-          laporanSheet.getRange("A1:N1").setFontWeight("bold");
+      if (laporanSheet.getLastColumn() < 15) {
+          laporanSheet.getRange("A1:O1").setValues([["ID Laporan", "Alat", "Kode", "Keluhan", "Pelapor", "Ruangan", "Tanggal Laporan", "Status", "Waktu Pengerjaan", "Identifikasi", "Tindakan", "Rekomendasi", "Catatan", "Email Pelapor", "Bukti Foto"]]);
+          laporanSheet.getRange("A1:O1").setFontWeight("bold");
       }
   }
 
@@ -933,6 +940,27 @@ function addLaporan(laporan) {
   // Default status Waiting
   laporan.status = 'Waiting';
 
+  // Handle Image Upload
+  let imageUrl = "";
+  if (laporan.gambar) {
+      try {
+          // Folder "UPLOAD" specific ID
+          const folderId = "1hvxspyHdHwc3k8Qyf3Jy82YI1To9Natg";
+          const folder = DriveApp.getFolderById(folderId);
+          
+          const blob = Utilities.newBlob(Utilities.base64Decode(laporan.gambar.data), laporan.gambar.mimeType, laporan.gambar.name);
+          const file = folder.createFile(blob);
+          
+          // Set public access so it can be viewed in sheet/app (Optional, depends on requirement)
+          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          
+          imageUrl = file.getUrl();
+      } catch (e) {
+          Logger.log("Error saving image: " + e.message);
+          imageUrl = "Error: " + e.message;
+      }
+  }
+
   // Add new row
   sheet.appendRow([
     laporan.laporanId,
@@ -948,7 +976,8 @@ function addLaporan(laporan) {
     "", // Tindakan
     "", // Rekomendasi
     "", // Catatan
-    laporan.email || "" // Email Pelapor
+    laporan.email || "", // Email Pelapor
+    imageUrl // Bukti Foto
   ]);
   
   // NOTIFIKASI: Laporan Baru Masuk
