@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Maintenance Dashboard - MedRepair</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1c2a36",
+                        "sidebar-light": "#ffffff",
+                        "sidebar-dark": "#15202b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar -->
+<aside class="hidden md:flex flex-col w-64 h-full bg-sidebar-light dark:bg-sidebar-dark border-r border-slate-200 dark:border-slate-800">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0" data-alt="MedRepair system logo abstract blue shape" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDc0OkRB-TSximqtueTE1H_bH9yh_1aeWHD3U7koYOg7emB-rof9xSfXwkPon4gG_F_QVUHLp9PsO7yAusLsSKLFHrfx9MGaRoUUWSDrwv1HOcEV5ETY-u0u5B5BEbaIWKT-S9uVid3D4BumLFE_GZDD-SkDO6I25-_jsifMrM0L46sgDH8Qc5d6JwviiDv8ehUFYpqttfFLkACUsXxp0atyntHEENNMyxsmRWYp0UAWP3KnFmMHVr0Y0ANigVUxxZNCih-tQeqNwcN");'></div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-normal">Admin Panel</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">MedRepair System</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col flex-1 px-4 gap-2">
+<!-- Navigation Items -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium leading-normal">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium leading-normal">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium leading-normal">Technicians</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium leading-normal">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium leading-normal">Settings</span>
+</a>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium leading-normal">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-y-auto relative">
+<!-- Mobile Header (Visible only on small screens) -->
+<div class="md:hidden flex items-center justify-between p-4 bg-sidebar-light dark:bg-sidebar-dark border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0" data-alt="MedRepair system logo abstract blue shape" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB2miwpMBN3oeC91v0yOXdGATqjg5mwLWxJkkgoSxIyxLeCQs4Ue8b8jHhErN2h_7M4bKOWssvJkIJYiZHa2iBn9fawlCN16V1R7biGicBJ0JHhZPCET4l0U8q8OYzuwL4frcJuiimy_R2hxJtv2CLvEloBpJ5LOJOBekLICzQJb3KRdse_O4vswfmUY00u9IoUTpLAwCyCGdlOI2YBAZUwMctvJPMVMRwcjml6wnEHWlyk6M9V_Wa-ImzGNipwTfXiGsB2atUFzfCr");'></div>
+<span class="font-bold text-slate-900 dark:text-white">MedRepair</span>
+</div>
+<button class="text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<div class="max-w-[1200px] w-full mx-auto p-4 md:p-8 flex flex-col gap-8">
+<!-- Header Image Section -->
+<div class="w-full">
+<div class="bg-cover bg-center flex flex-col justify-end overflow-hidden rounded-xl min-h-[160px] md:min-h-[200px] shadow-sm relative group" data-alt="Abstract blue technical pattern banner" style='background-image: linear-gradient(180deg, rgba(19, 127, 236, 0.2) 0%, rgba(16, 25, 34, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCaCgMFCFbzEMrmM7833VJPLSXqTCRgfA89kP1KzstzH46DjnBMCMnZ5WpVLfG-qKHTa8i6kmiKHtTHNAqSBSXj2mvurBKJgmXjFa-AqK7TYqL39m0JN3XpFlTJkQGEQEYEhbywpFfT_e54pBle1q4nZgAOqCCzzXneH-_-UtGQIAxo1Jqbaoe4J93V66b1VIPcQyYEKv8BLD4Fyq_Ysq7Qf4PS5vxP01KeMX812KbfugSM2pDfWruljFlu16Kf1sQMZr6sPkQQUUrJ");'>
+<div class="flex flex-col p-6 z-10">
+<h2 class="text-white tracking-tight text-3xl font-bold leading-tight">Maintenance Overview</h2>
+<p class="text-slate-200 text-sm mt-1">Manage and track medical equipment repairs efficiently.</p>
+</div>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Total Reports -->
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-card-light dark:bg-card-dark border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Reports</p>
+<span class="bg-primary/10 text-primary p-1 rounded-md">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</span>
+</div>
+<div class="flex items-end gap-2 mt-2">
+<p class="text-slate-900 dark:text-white text-3xl font-bold leading-tight">1,245</p>
+<div class="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded mb-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                                5%
+                            </div>
+</div>
+</div>
+<!-- Open Tickets -->
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-card-light dark:bg-card-dark border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Open Tickets</p>
+<span class="bg-blue-500/10 text-blue-500 p-1 rounded-md">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</span>
+</div>
+<div class="flex items-end gap-2 mt-2">
+<p class="text-slate-900 dark:text-white text-3xl font-bold leading-tight">45</p>
+<div class="flex items-center text-red-600 text-xs font-medium bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded mb-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                                12%
+                            </div>
+</div>
+</div>
+<!-- On Process -->
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-card-light dark:bg-card-dark border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">On Process</p>
+<span class="bg-orange-500/10 text-orange-500 p-1 rounded-md">
+<span class="material-symbols-outlined text-[20px]">engineering</span>
+</span>
+</div>
+<div class="flex items-end gap-2 mt-2">
+<p class="text-slate-900 dark:text-white text-3xl font-bold leading-tight">12</p>
+<div class="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded mb-1">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                                2%
+                            </div>
+</div>
+</div>
+<!-- Completed -->
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-card-light dark:bg-card-dark border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Completed</p>
+<span class="bg-emerald-500/10 text-emerald-500 p-1 rounded-md">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</span>
+</div>
+<div class="flex items-end gap-2 mt-2">
+<p class="text-slate-900 dark:text-white text-3xl font-bold leading-tight">1,188</p>
+<div class="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded mb-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                                8%
+                            </div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Chart Section -->
+<div class="lg:col-span-2 bg-card-light dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">SLA Compliance Trend</h2>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex items-baseline gap-4 mb-6">
+<p class="text-slate-900 dark:text-white text-4xl font-bold">98%</p>
+<div class="flex items-center gap-2">
+<span class="text-emerald-600 dark:text-emerald-400 text-sm font-medium flex items-center bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[16px] mr-1">trending_up</span>
+                                    +2%
+                                </span>
+<span class="text-slate-400 text-sm">vs last 30 days</span>
+</div>
+</div>
+<!-- Chart Container -->
+<div class="w-full h-48 sm:h-64 relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 472 150">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#137fec" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#137fec" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V150H0V109Z" fill="url(#chartGradient)"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" fill="none" stroke="#137fec" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<div class="flex justify-between mt-4 px-2">
+<p class="text-slate-400 text-xs font-semibold tracking-wider">WEEK 1</p>
+<p class="text-slate-400 text-xs font-semibold tracking-wider">WEEK 2</p>
+<p class="text-slate-400 text-xs font-semibold tracking-wider">WEEK 3</p>
+<p class="text-slate-400 text-xs font-semibold tracking-wider">WEEK 4</p>
+</div>
+</div>
+<!-- Quick Actions / Mini Panel -->
+<div class="flex flex-col gap-4">
+<div class="bg-primary text-white rounded-xl p-6 shadow-md bg-gradient-to-br from-primary to-blue-600">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-white/20 rounded-lg">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<h3 class="font-bold text-lg">Urgent Attention</h3>
+</div>
+<p class="text-blue-100 text-sm mb-6">3 devices in ICU require immediate calibration check.</p>
+<button class="w-full bg-white text-primary font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-50 transition-colors text-sm">
+                                View Critical List
+                            </button>
+</div>
+<div class="flex-1 bg-card-light dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col">
+<h3 class="font-bold text-slate-900 dark:text-white mb-4">Technician Availability</h3>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Technician portrait Sarah" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCXgxwMDHUS5Zj-Jvo836nbOS7HmNzJgtD6l5gTDjbZxpSD27tBgOw2UXnqtQRY2tlSSWiDhsINxRYQd0LWvSGaZBDGT9Ome5QrcLwOIIkCWCYqksjyvOUdp54nSB_xypb1mnvi2mnf9PP6UyyAzQ8nNVXbc0U0N34jjHd-tEUsYEA__4qmYr3VbtxTBUQRc9BmoLpTQ44ADpQOq8q5JVpw0dVcQVHPAGtlVwQspruedPi8xdrAk1aOB0jJZ9rZ5Iy8UEj6U4iOb8OP");'></div>
+<div class="flex-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white">Sarah Jenkins</p>
+<p class="text-xs text-emerald-500 font-medium">Available</p>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">chat</span></button>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Technician portrait Mike" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdwOQomsPALY6yI_9aC2z2F8C4CX710_ackGMnk7V_HzDD0KSROThCGj5G5qszD-zBztzEHkEM1qjY_XODD_z1EY6JPWZXiylQi44S3JXV4mDvE_ztFQSFSRj_G_fdE7IFZUPz9RCQd3okHutmpfrEjZJYpst_31_XVgAqFBIVLKtt3TBnc8CZhwZFCLwIznRCL65VLaPfyHUeqGhdfocG31iSRPBine1PngncLRM2kCFrZPdyYH0zaZab_9jWfbXTbwgfpxsM2uwH");'></div>
+<div class="flex-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white">Mike Ross</p>
+<p class="text-xs text-orange-500 font-medium">On Job</p>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">chat</span></button>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Technician portrait David" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAiog0S-huCJuFCyceU6IQKYUpIheFf1ZRgNqKtNnMibz9ikeeG4YFvQlCjjBGJoIlF-9MDSTnPcG6AY49n7yVnWSl0Kl2xyFqa6tyyqZTvwmzAXjhMOzeiNdnzKDCOgnxUetwxKyFufQZxgkT-3e8SmYGGjg5vpzP_o1-WSS44ggnkC8n2R6ryYJbvnf7gJbtX1LRtwCKPp3HJskycdzfpwLhgiYz99eRuRyLt9dbX3Dx3xuWs3yl9tNG-gFEpUxdLk4qqAYAEmuGe");'></div>
+<div class="flex-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white">David Kim</p>
+<p class="text-xs text-emerald-500 font-medium">Available</p>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">chat</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Reports Table Section -->
+<div class="bg-card-light dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+<!-- Table Header -->
+<div class="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Recent Reports</h2>
+<div class="relative w-full sm:w-auto">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400">search</span>
+</div>
+<input class="block w-full sm:w-80 pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm" placeholder="Search report ID, equipment..." type="text"/>
+</div>
+</div>
+<!-- Table Content -->
+<div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+<thead class="bg-slate-50 dark:bg-slate-800">
+<tr>
+<th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Report ID</th>
+<th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Equipment</th>
+<th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Department</th>
+<th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Status</th>
+<th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Date</th>
+<th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider" scope="col">Action</th>
+</tr>
+</thead>
+<tbody class="bg-card-light dark:bg-card-dark divide-y divide-slate-200 dark:divide-slate-700">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-semibold text-slate-900 dark:text-white">#RPT-2023-001</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 text-slate-500">
+<span class="material-symbols-outlined text-[18px]">medical_services</span>
+</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">MRI Scanner X7</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-slate-500 dark:text-slate-400">Radiology</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                            Open
+                                        </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                        Oct 24, 2023
+                                    </td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="bg-primary hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                            Assign Technician
+                                        </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-semibold text-slate-900 dark:text-white">#RPT-2023-002</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 text-slate-500">
+<span class="material-symbols-outlined text-[18px]">biotech</span>
+</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">Centrifuge 5000</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-slate-500 dark:text-slate-400">Lab 3</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                            In Progress
+                                        </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                        Oct 23, 2023
+                                    </td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-blue-700 dark:hover:text-blue-400 transition-colors">
+                                            View Details
+                                        </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-semibold text-slate-900 dark:text-white">#RPT-2023-003</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 text-slate-500">
+<span class="material-symbols-outlined text-[18px]">monitor_heart</span>
+</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">ECG Monitor</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-slate-500 dark:text-slate-400">Emergency Room</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                            Resolved
+                                        </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                        Oct 22, 2023
+                                    </td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+                                            Archived
+                                        </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-semibold text-slate-900 dark:text-white">#RPT-2023-004</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 text-slate-500">
+<span class="material-symbols-outlined text-[18px]">vaccines</span>
+</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">Infusion Pump</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-slate-500 dark:text-slate-400">ICU</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                            Open
+                                        </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                        Oct 21, 2023
+                                    </td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="bg-primary hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                            Assign Technician
+                                        </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+<div class="text-sm text-slate-500 dark:text-slate-400">
+                            Showing <span class="font-medium">1</span> to <span class="font-medium">4</span> of <span class="font-medium">12</span> results
+                        </div>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50">Previous</button>
+<button class="px-3 py-1 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

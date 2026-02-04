@@ -1,419 +1,238 @@
 <!DOCTYPE html>
-<html lang="id">
+<html class="light" lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Sistem Inventory - Mobile ATEM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1c2a36",
+                        "sidebar-light": "#ffffff",
+                        "sidebar-dark": "#15202b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fb;
-            color: #212529;
-            padding-bottom: 80px;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
-            color: white;
-            padding: 16px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-title {
-            font-size: 18px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-subtitle {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-top: 4px;
-        }
-
-        /* Search & Filter */
-        .search-section {
-            padding: 12px 16px;
-            background: white;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-bottom: 8px;
-            transition: border-color 0.2s;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #4361ee;
-        }
-
-        .filter-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 14px;
-            background: white;
-        }
-
-        /* Cards Container */
-        .cards-container {
-            padding: 12px 16px;
-        }
-
-        /* Report Card */
-        .report-card {
-            background: white;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 12px;
-        }
-
-        .card-id {
-            font-size: 12px;
-            font-weight: 700;
-            color: #4361ee;
-        }
-
-        .card-date {
-            font-size: 11px;
-            color: #6c757d;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #212529;
-        }
-
-        .card-code {
-            font-size: 12px;
-            color: #6c757d;
-            margin-bottom: 12px;
-        }
-
-        .card-info {
-            display: grid;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .info-row {
-            display: flex;
-            font-size: 13px;
-        }
-
-        .info-label {
-            min-width: 80px;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        .info-value {
-            color: #212529;
-            flex: 1;
-        }
-
-        .card-keluhan {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #495057;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-badge.waiting {
-            background: #ffbe0b;
-            color: #000;
-        }
-
-        .status-badge.process {
-            background: #4361ee;
-            color: #fff;
-        }
-
-        .status-badge.done {
-            background: #06ffa5;
-            color: #000;
-        }
-
-        /* Action Buttons */
-        .action-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        .btn-update {
-            background: #4361ee;
-            color: white;
-        }
-
-        .btn-update:active {
-            background: #3651d4;
-            transform: scale(0.98);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .empty-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-
-        .empty-text {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4361ee;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Refresh Button */
-        .refresh-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #4361ee;
-            color: white;
-            border: none;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
-            cursor: pointer;
-            font-size: 24px;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .refresh-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Lightbox */
-        .lightbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .lightbox.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .lightbox-img {
-            max-width: 95%;
-            max-height: 95%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        .lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.1);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
         }
     </style>
 </head>
 
-<body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-title">
-            👷 Mobile ATEM
-        </div>
-        <div class="header-subtitle" id="headerSubtitle">Memuat data...</div>
-    </div>
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
 
-    <!-- Search & Filter -->
-    <div class="search-section">
-        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Cari ID, Alat, Pelapor...">
-        <select class="filter-select" id="statusFilter">
-            <option value="On Process" selected>⚙️ On Process (Task Saya)</option>
-            <option value="Waiting">⏳ Waiting</option>
-            <option value="Done">✅ Done</option>
-            <option value="">Semua Status</option>
-        </select>
-    </div>
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- Sidebar (Copied from Admin) -->
+        <aside
+            class="hidden md:flex flex-col w-64 h-full bg-sidebar-light dark:bg-sidebar-dark border-r border-slate-200 dark:border-slate-800">
+            <div class="p-6">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm">
+                        ST
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-slate-900 dark:text-white text-base font-bold leading-normal">ATEM</h1>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">Teknisi Panel
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col flex-1 px-4 gap-2">
+                <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:text-primary transition-colors font-medium"
+                    href="#">
+                    <span class="material-symbols-outlined">engineering</span>
+                    <span class="text-sm font-medium leading-normal">Proses Laporan</span>
+                </a>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="logout()"
+                    class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="text-sm font-medium leading-normal">Log Out</span>
+                </button>
+            </div>
+        </aside>
 
-    <!-- Cards Container -->
-    <div class="cards-container" id="cardsContainer">
-        <!-- Cards will be rendered here -->
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full overflow-y-auto relative pb-20 md:pb-0">
+            <!-- Mobile Header (Sticky) -->
+            <div
+                class="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
+                <div class="px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile Toggle (Hidden on Md+) -->
+                        <!-- We don't have a functional sidebar toggle for mobile in this simplified version, so just showing logo/title like before but consistent with Admin logic -->
+                        <div class="md:hidden bg-primary/10 text-primary p-2 rounded-xl">
+                            <span class="material-symbols-outlined">engineering</span>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Mobile ATEM</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium" id="headerSubtitle">Memuat
+                                data...</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="loadData()"
+                            class="p-2 text-slate-500 hover:text-primary active:scale-95 transition-all bg-slate-50 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <span class="material-symbols-outlined">refresh</span>
+                        </button>
+                        <!-- Logout button for mobile -->
+                        <button onclick="logout()"
+                            class="md:hidden p-2 text-slate-500 hover:text-red-500 active:scale-95 transition-all bg-slate-50 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <span class="material-symbols-outlined">logout</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Filter Section -->
+                <div class="px-4 pb-4 flex flex-col gap-3">
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span
+                                class="material-symbols-outlined text-slate-400 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+                        </div>
+                        <input type="text" id="searchInput"
+                            class="block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm shadow-sm transition-all"
+                            placeholder="Cari ID, Alat, Pelapor...">
+                    </div>
+
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span
+                                class="material-symbols-outlined text-slate-400 text-[20px] group-focus-within:text-primary transition-colors">filter_list</span>
+                        </div>
+                        <!-- Updated Filter Options: Only On Process, Done, and All (restricted in logic) -->
+                        <select id="statusFilter"
+                            class="block w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm appearance-none shadow-sm transition-all">
+                            <option value="On Process" selected>On Process (Task Saya)</option>
+                            <option value="Done">Done</option>
+                            <option value="">Semua (Proses & Done)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-xl mx-auto w-full p-4 flex flex-col gap-4" id="cardsContainer">
+                <!-- Cards injected here -->
+            </div>
+        </main>
     </div>
 
     <!-- Loading Overlay -->
-    <div class="loading" id="loadingOverlay" style="display: none;">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Refresh Button -->
-    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻</button>
-
-    <!-- Lightbox Overlay -->
-    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-        <span class="lightbox-close">&times;</span>
-        <img src="" alt="Full Screen Image" class="lightbox-img" id="lightboxImg">
+    <div id="loadingOverlay"
+        class="fixed inset-0 z-[60] bg-white/90 dark:bg-gray-900/90 flex flex-col items-center justify-center gap-4 transition-opacity duration-300 hidden">
+        <div class="relative flex items-center justify-center">
+            <div class="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
+            <div
+                class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin absolute top-0 left-0">
+            </div>
+        </div>
+        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300 animate-pulse">Sedang Memuat Data...</p>
     </div>
 
     <!-- JS Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Lightbox Functions
-        function openLightbox(url) {
-            const lightbox = document.getElementById('lightbox');
-            const img = document.getElementById('lightboxImg');
-            img.src = url;
-            lightbox.classList.add('active');
-        }
-
-        function closeLightbox() {
-            document.getElementById('lightbox').classList.remove('active');
-        }
         let allData = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function () {
             loadData();
-
             // Setup event listeners
             document.getElementById('searchInput').addEventListener('input', filterData);
             document.getElementById('statusFilter').addEventListener('change', filterData);
         });
 
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+        }
+
+        function logout() {
+            sessionStorage.removeItem('user');
+            google.script.run.withSuccessHandler(function (url) {
+                window.top.location.href = url;
+            }).getBaseUrl();
+        }
+
         function loadData() {
             showLoading();
-
             google.script.run
                 .withSuccessHandler(function (data) {
                     hideLoading();
-                    allData = data.reverse(); // Newest first
+                    // FILTER EKSPLICIT START: Hanya On Process dan Done yang masuk ke allData technicians
+                    allData = data.filter(item => item.status === 'On Process' || item.status === 'Done').reverse();
+
                     updateHeaderSubtitle();
                     filterData(); // Apply initial filter
                 })
                 .withFailureHandler(function (error) {
                     hideLoading();
-                    Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Gagal memuat data: ' + error.message,
+                        icon: 'error',
+                        confirmButtonColor: '#137fec'
+                    });
                 })
                 .getLaporanData();
         }
 
         function updateHeaderSubtitle() {
             const total = allData.length;
-            document.getElementById('headerSubtitle').textContent = `Total ${total} laporan`;
+            document.getElementById('headerSubtitle').textContent = `Total ${total} data`;
         }
 
         function renderCards(data) {
@@ -421,77 +240,96 @@
 
             if (data.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">👷</div>
-                        <div class="empty-text">Tidak ada data untuk ditampilkan</div>
+                    <div class="flex flex-col items-center justify-center py-12 text-center text-slate-400">
+                        <div class="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-4">
+                            <span class="material-symbols-outlined text-4xl">inventory_2</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-600 dark:text-slate-300">Tidak ada data</h3>
+                        <p class="text-sm">Tidak ditemukan laporan sesuai filter.</p>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = data.map(item => {
-                const statusClass = item.status === 'Waiting' ? 'waiting' :
-                    item.status === 'On Process' ? 'process' : 'done';
+                const statusStyles = {
+                    'Waiting': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+                    'On Process': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+                    'Done': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                };
+
+                const statusIcons = {
+                    'Waiting': 'schedule',
+                    'On Process': 'engineering',
+                    'Done': 'check_circle'
+                };
+
+                const statusClass = statusStyles[item.status] || 'bg-slate-100 text-slate-800';
+                const statusIcon = statusIcons[item.status] || 'info';
 
                 // Escape for onclick
-                const identifikasi = (item.identifikasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const tindakan = (item.tindakan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const rekomendasi = (item.rekomendasi || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const catatan = (item.catatan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const keluhan = (item.keluhan || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const escapeStr = (str) => (str || '').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, "\\n");
+
+                const identifikasi = escapeStr(item.identifikasi);
+                const tindakan = escapeStr(item.tindakan);
+                const rekomendasi = escapeStr(item.rekomendasi);
+                const catatan = escapeStr(item.catatan);
 
                 let actionButton = '';
-                // Logic: Button "Update" always appears for On Process to allow adding details
-                // You might also want to allow picking up "Waiting" tasks here if the user is an engineer
                 if (item.status === 'On Process') {
-                    actionButton = `<button class="action-btn btn-update" onclick="openUpdateModal('${item.id}', '${item.laporanId}', '${identifikasi}', '${tindakan}', '${rekomendasi}', '${catatan}')">✏️ Update Pengerjaan</button>`;
-                } else if (item.status === 'Waiting') {
-                    // Adding this to "Take Job" if needed, similar to LaporanMasuk
-                    // But Atem.html didn't explicitly show a button for Waiting (it filtered them out). 
-                    // I'll leave it as informational or add a "Kerjakan" button if desired?
-                    // Based on request "fungsi tetap berjalan" and Atem.html logic (which is updating process), 
-                    // I will focus on the Update Modal logic.
-                    actionButton = `<span class="text-muted small">Status Waiting (Ambil di Dashboard Admin)</span>`;
+                    actionButton = `
+                        <button onclick="openUpdateModal('${item.id}', '${item.laporanId}', '${identifikasi}', '${tindakan}', '${rekomendasi}', '${catatan}')" 
+                                class="w-full mt-4 flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 active:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                            <span class="material-symbols-outlined text-[18px]">edit_document</span>
+                            Update Pengerjaan
+                        </button>`;
                 }
+                // Waiting is removed from data load, so no need to handle here.
 
                 return `
-                    <div class="report-card">
-                        <div class="card-header">
-                            <div class="card-id">#${item.laporanId}</div>
-                            <div class="card-date">${item.tanggal || '-'}</div>
+                    <div class="bg-card-light dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-1 rounded-md">#${item.laporanId}</span>
+                                <span class="text-xs text-slate-400">${item.tanggal || '-'}</span>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusClass}">
+                                <span class="material-symbols-outlined text-[14px]">${statusIcon}</span>
+                                ${item.status}
+                            </span>
                         </div>
                         
-                        <div class="card-title">${item.alat}</div>
-                        <div class="card-code">${item.kode || ''}</div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">${item.alat}</h3>
+                        <p class="text-xs text-slate-500 mb-4 font-mono">${item.kode || 'No Code'}</p>
                         
-                        <div class="card-info">
-                            <div class="info-row">
-                                <div class="info-label">Pelapor</div>
-                                <div class="info-value">${item.pelapor}</div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pelapor</p>
+                                <p class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">${item.pelapor}</p>
                             </div>
-                            <div class="info-row">
-                                <div class="info-label">Ruangan</div>
-                                <div class="info-value">${item.ruangan}</div>
+                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Ruangan</p>
+                                <p class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">${item.ruangan}</p>
                             </div>
                         </div>
                         
-                        <div class="card-keluhan">
-                            <strong>Keluhan:</strong> ${item.keluhan}
+                        <div class="mb-4">
+                             <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Keluhan</p>
+                             <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-900/20 text-red-900 dark:text-red-200">
+                                ${item.keluhan}
+                             </p>
                         </div>
 
                         ${item.gambar ? `
-                        <div class="mb-2">
-                             <img src="${item.gambar}" alt="Foto Kerusakan" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openLightbox('${item.gambar}')">
-                             <div style="font-size: 11px; color: #6c757d; margin-top: 6px; text-align: center; font-style: italic;">
-                                <i class="bi bi-zoom-in"></i> Ketuk gambar untuk memperbesar
+                        <div class="mb-4 relative group cursor-pointer overflow-hidden rounded-lg" onclick="viewImage('${item.gambar}')">
+                             <img src="${item.gambar}" alt="Foto Kerusakan" class="w-full h-40 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">zoom_in</span>
                              </div>
                         </div>
                         ` : ''}
                         
-                        <div class="card-footer">
-                            <span class="status-badge ${statusClass}">${item.status}</span>
-                            ${actionButton}
-                        </div>
+                        ${actionButton}
                     </div>
                 `;
             }).join('');
@@ -517,94 +355,62 @@
             renderCards(filtered);
         }
 
+        function viewImage(url) {
+            Swal.fire({
+                imageUrl: url,
+                imageAlt: 'Foto Kerusakan',
+                width: '90%',
+                background: '#fff',
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    popup: 'rounded-xl overflow-hidden'
+                }
+            });
+        }
+
         function openUpdateModal(id, laporanId, identifikasi, tindakan, rekomendasi, catatan) {
             Swal.fire({
-                title: `Update Laporan #${laporanId}`,
+                title: `<span class="text-lg font-bold text-slate-900">Update ${laporanId}</span>`,
                 html: `
-                    <style>
-                        .swal2-popup { 
-                            padding: 15px !important;
-                            max-height: 90vh !important;
-                            overflow-y: auto !important;
-                        }
-                        .swal2-html-container {
-                            margin: 0 !important;
-                            padding: 0 !important;
-                            overflow: visible !important;
-                        }
-                        .update-form-label { 
-                            display: block;
-                            text-align: left; 
-                            margin-top: 12px; 
-                            margin-bottom: 4px;
-                            font-size: 13px; 
-                            font-weight: 600; 
-                            color: #495057;
-                        }
-                        .update-form-textarea { 
-                            width: 100% !important;
-                            box-sizing: border-box !important;
-                            font-size: 14px !important; 
-                            padding: 10px !important;
-                            border: 2px solid #e9ecef !important;
-                            border-radius: 10px !important;
-                            resize: vertical !important;
-                            min-height: 70px !important;
-                            max-height: 120px !important;
-                            transition: border-color 0.2s !important;
-                        }
-                        .update-form-textarea:focus {
-                            outline: none !important;
-                            border-color: #4361ee !important;
-                        }
-                        .checkbox-wrapper { 
-                            display: flex; 
-                            align-items: center; 
-                            margin-top: 15px; 
-                            background: linear-gradient(135deg, #d1f2e1 0%, #a8e6cf 100%); 
-                            padding: 12px; 
-                            border-radius: 10px; 
-                        }
-                        .checkbox-wrapper input[type="checkbox"] {
-                            width: 22px;
-                            height: 22px;
-                            margin-right: 10px;
-                            accent-color: #06ffa5;
-                        }
-                        .checkbox-wrapper label {
-                            font-weight: 600;
-                            color: #0f5132;
-                            margin: 0;
-                            font-size: 14px;
-                        }
-                    </style>
-                    <div>
-                        <label class="update-form-label">Identifikasi Masalah</label>
-                        <textarea id="swalIdentifikasi" class="update-form-textarea" placeholder="Hasil identifikasi...">${identifikasi}</textarea>
+                    <div class="flex flex-col gap-4 text-left">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Identifikasi Masalah</label>
+                            <textarea id="swalIdentifikasi" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all min-h-[80px]" placeholder="Hasil identifikasi...">${identifikasi}</textarea>
+                        </div>
                         
-                        <label class="update-form-label">Tindakan Perbaikan</label>
-                        <textarea id="swalTindakan" class="update-form-textarea" placeholder="Tindakan yang dilakukan...">${tindakan}</textarea>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tindakan Perbaikan</label>
+                            <textarea id="swalTindakan" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all min-h-[80px]" placeholder="Tindakan yang dilakukan...">${tindakan}</textarea>
+                        </div>
                         
-                        <label class="update-form-label">Rekomendasi</label>
-                        <textarea id="swalRekomendasi" class="update-form-textarea" placeholder="Rekomendasi...">${rekomendasi}</textarea>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Rekomendasi</label>
+                            <textarea id="swalRekomendasi" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all min-h-[60px]" placeholder="Rekomendasi...">${rekomendasi}</textarea>
+                        </div>
                         
-                        <label class="update-form-label">Catatan</label>
-                        <textarea id="swalCatatan" class="update-form-textarea" placeholder="Catatan tambahan...">${catatan}</textarea>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Catatan</label>
+                            <textarea id="swalCatatan" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all min-h-[60px]" placeholder="Catatan tambahan...">${catatan}</textarea>
+                        </div>
                         
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" id="swalMarkAsDone">
-                            <label for="swalMarkAsDone">✅ Tandai Selesai (Done)</label>
+                        <div class="mt-2 bg-emerald-50 border border-emerald-100 rounded-lg p-3 flex items-center gap-3">
+                            <input type="checkbox" id="swalMarkAsDone" class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                            <label for="swalMarkAsDone" class="font-semibold text-emerald-800 text-sm cursor-pointer">Tandai Selesai (Done)</label>
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: '💾 Simpan',
+                confirmButtonText: 'Simpan Perubahan',
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#4361ee',
-                cancelButtonColor: '#6c757d',
-                width: '95%',
+                confirmButtonColor: '#137fec',
+                cancelButtonColor: '#94a3b8',
+                width: '100%',
+                padding: '1.25rem',
                 customClass: {
-                    popup: 'mobile-update-popup'
+                    popup: 'rounded-xl',
+                    confirmButton: 'rounded-lg font-semibold shadow-md',
+                    cancelButton: 'rounded-lg font-semibold'
                 },
                 preConfirm: () => {
                     const identifikasi = document.getElementById('swalIdentifikasi').value;
@@ -637,8 +443,10 @@
                             title: 'Berhasil!',
                             text: response.message,
                             icon: 'success',
+                            border: 'none',
                             timer: 1500,
-                            showConfirmButton: false
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-xl' }
                         });
                         loadData();
                     } else {
@@ -650,14 +458,6 @@
                     Swal.fire('Error', error.message, 'error');
                 })
                 .updateLaporanDetails(id, details);
-        }
-
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
         }
     </script>
 </body>

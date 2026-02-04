@@ -23,6 +23,13 @@ function getBaseUrl() {
 }
 
 function doGet(e) {
+  // Login page - public access
+  if (e.parameter.page === 'login') {
+      return HtmlService.createHtmlOutputFromFile('Login')
+        .setTitle('Login - Simantools')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   if (e.parameter.page === 'admin-web') {
       return HtmlService.createHtmlOutputFromFile('LaporanMasuk')
         .setTitle('Laporan Masuk - Simantools')
@@ -30,10 +37,18 @@ function doGet(e) {
   }
 
   if (e.parameter.page === 'admin') {
-      return HtmlService.createHtmlOutputFromFile('Mobile')
+      return HtmlService.createHtmlOutputFromFile('MobileAdmin')
         .setTitle('Laporan Masuk - Simantools')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
+
+
+  if (e.parameter.page === 'admin-v2') {
+      return HtmlService.createHtmlOutputFromFile('MobileAdmin')
+        .setTitle('Laporan Masuk - Simantools')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
 
 
   if (e.parameter.page === 'atem-web') {
@@ -283,7 +298,6 @@ function setupFirstAdmin() {
   return { success: true, message: "Admin and Manager users created" };
 }
 
-/*
 function authenticateUser(username, password) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const userSheet = spreadsheet.getSheetByName(SHEET_NAMES.USER);
@@ -299,19 +313,18 @@ function authenticateUser(username, password) {
     const sheetPassword = String(userData[i][1]).trim();
     
     if (sheetUsername === cleanUsername && sheetPassword === cleanPassword) {
-      // PERBAIKAN: Ambil indeks yang benar untuk Nama Lengkap dan Role
       return {
         success: true,
         username: userData[i][0],
-        fullName: userData[i][2], // BENAR: Indeks 2 untuk Nama Lengkap
-        role: userData[i][3]      // BENAR: Indeks 3 untuk Role
+        fullName: userData[i][2], // Nama Lengkap
+        role: userData[i][3]      // Role
       };
     }
   }
   
-  return { success: false, message: "Invalid username or password" };
+  return { success: false, message: "Username atau password salah" };
 }
-*/
+
 
 // Get all data for dropdowns
 /*
