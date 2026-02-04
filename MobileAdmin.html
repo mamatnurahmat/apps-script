@@ -145,8 +145,60 @@
 
 <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
-    <!-- Loading -->
-    <div id="loadingOverlay" class="loading-overlay">
+
+    <!-- Login Modal (Full Screen Overlay) -->
+    <div id="loginOverlay"
+        class="fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4 transition-all duration-500">
+        <div
+            class="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8 transform transition-all hover:scale-[1.01] duration-300">
+            <div class="flex flex-col items-center mb-6">
+                <div class="bg-primary/10 text-primary p-3 rounded-full mb-4">
+                    <span class="material-symbols-outlined text-3xl">admin_panel_settings</span>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Admin Login</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Masuk untuk mengelola laporan</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5"
+                        for="username">Username</label>
+                    <div class="relative">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">person</span>
+                        <input id="username" type="text" required
+                            class="pl-10 block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:border-primary focus:ring-primary dark:text-white dark:placeholder-slate-500"
+                            placeholder="Masukkan username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5"
+                        for="password">Password</label>
+                    <div class="relative">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">lock</span>
+                        <input id="password" type="password" required
+                            class="pl-10 block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:border-primary focus:ring-primary dark:text-white dark:placeholder-slate-500"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="mt-2 w-full bg-primary hover:bg-blue-600 active:scale-95 text-white font-bold py-2.5 rounded-lg shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+                    <span>Masuk</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-xs text-slate-400">
+                &copy; Simantools Admin System
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="spinner"></div>
     </div>
 
@@ -156,6 +208,7 @@
         <img src="" alt="Full Screen" class="lightbox-img" id="lightboxImg">
     </div>
 
+    <!-- Main App Container (Initially Hidden if not logged in is handled by overlay covering it) -->
     <div class="flex h-screen w-full overflow-hidden">
         <!-- Sidebar -->
         <aside
@@ -383,11 +436,103 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            loadData();
+            // Check Auth on Init
+            checkAuth();
+
             // Setup inputs
             document.getElementById('searchInput').addEventListener('input', filterData);
             document.getElementById('statusFilter').addEventListener('change', filterData);
         });
+
+        function checkAuth() {
+            const userStr = sessionStorage.getItem('user');
+            const overlay = document.getElementById('loginOverlay');
+
+            if (!userStr) {
+                // Not logged in: Show Overlay, Hide Scroll
+                overlay.classList.remove('hidden');
+                overlay.classList.remove('opacity-0');
+                overlay.classList.remove('pointer-events-none');
+                return;
+            }
+
+            try {
+                currentUser = JSON.parse(userStr);
+
+                // Verify Role
+                if (currentUser.role !== 'Admin') {
+                    // Wrong role: Logout logic basically
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Akses Ditolak',
+                        text: 'Hanya Admin yang bisa mengakses halaman ini.'
+                    }).then(() => {
+                        sessionStorage.removeItem('user');
+                        window.location.reload();
+                    });
+                    return;
+                }
+
+                // Auth Success: Hide Overlay
+                overlay.classList.add('opacity-0');
+                overlay.classList.add('pointer-events-none');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 500); // Wait for transition
+
+                // Load Data
+                document.getElementById('headerSubtitle').textContent = `Halo, ${currentUser.fullName || 'Admin'}`;
+                loadData();
+
+            } catch (e) {
+                sessionStorage.removeItem('user');
+                window.location.reload();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            showLoading();
+
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    hideLoading();
+                    if (response.success) {
+                        // Check Role specifically
+                        if (response.role !== 'Admin') {
+                            Swal.fire('Ditolak', 'Maaf, akun Anda bukan Admin.', 'error');
+                            return;
+                        }
+
+                        // Save session
+                        const userStore = {
+                            username: response.username,
+                            fullName: response.fullName,
+                            role: response.role
+                        };
+                        sessionStorage.setItem('user', JSON.stringify(userStore));
+
+                        // Refresh/Re-check
+                        checkAuth();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Login Berhasil',
+                            text: 'Selamat datang kembali!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Login Gagal', response.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (err) {
+                    hideLoading();
+                    Swal.fire('System Error', err.message, 'error');
+                })
+                .authenticateUser(username, password);
+        }
 
         function loadData() {
             showLoading();
@@ -396,7 +541,7 @@
                     hideLoading();
                     allData = data.reverse();
                     updateStats();
-                    checkLoginStatus();
+                    filterData();
                 })
                 .withFailureHandler(function (error) {
                     hideLoading();
@@ -405,24 +550,21 @@
                 .getLaporanData();
         }
 
-        function checkLoginStatus() {
-            const userStr = sessionStorage.getItem('user');
-            if (userStr) {
-                currentUser = JSON.parse(userStr);
-            }
-            filterData();
-        }
-
-        function isAdmin() {
-            if (currentUser && currentUser.role === 'Admin') return true;
-            return true; // Default true for now based on context
-        }
-
         function logout() {
-            sessionStorage.removeItem('user');
-            google.script.run.withSuccessHandler(function (url) {
-                window.top.location.href = url;
-            }).getBaseUrl();
+            Swal.fire({
+                title: 'Logout?',
+                text: "Anda akan keluar dari sesi ini.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    sessionStorage.removeItem('user');
+                    window.location.reload(); // Reload triggers checkAuth -> shows login overlay
+                }
+            });
         }
 
 
@@ -435,7 +577,6 @@
             document.getElementById('statWaiting').textContent = waiting;
             document.getElementById('statProcess').textContent = process;
             document.getElementById('statDone').textContent = done;
-            document.getElementById('headerSubtitle').textContent = `Sinkronisasi selesai. Total ${total} laporan.`;
             document.getElementById('showingText').textContent = `Menampilkan ${total} data`;
         }
 
@@ -458,31 +599,25 @@
                         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
 
                 let actionBtn = '-';
-                if (isAdmin()) {
-                    if (item.status === 'Waiting') {
-                        actionBtn = `<button onclick="updateStatus('${item.laporanId}', '${item.id}', 'On Process')" class="bg-primary hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">settings</span> Kerjakan</button>`;
-                    } else if (item.status === 'On Process') {
-                        actionBtn = `<button onclick="updateStatus('${item.laporanId}', '${item.id}', 'Done')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check</span> Selesai</button>`;
-                    } else {
-                        actionBtn = `<span class="text-emerald-500 flex items-center gap-1 text-xs"><span class="material-symbols-outlined text-[14px]">verified</span> Selesai</span>`;
-                    }
+                if (item.status === 'Waiting') {
+                    actionBtn = `<button onclick="updateStatus('${item.laporanId}', '${item.id}', 'On Process')" class="bg-primary hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">settings</span> Kerjakan</button>`;
+                } else if (item.status === 'On Process') {
+                    actionBtn = `<button onclick="updateStatus('${item.laporanId}', '${item.id}', 'Done')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check</span> Selesai</button>`;
+                } else {
+                    actionBtn = `<span class="text-emerald-500 flex items-center gap-1 text-xs"><span class="material-symbols-outlined text-[14px]">verified</span> Selesai</span>`;
                 }
 
                 // Response Time Check
                 let warningHtml = '';
                 if (item.status === 'Waiting' && item.tanggal) {
-                    // item.tanggal format example: 2026-02-04 18:00
-                    // We need to parse this manually to cross-browser safe Date
-                    // Format: yyyy-MM-dd HH:mm
                     const dateParts = item.tanggal.split(' ');
                     if (dateParts.length === 2) {
-                        const dateStr = dateParts[0] + 'T' + dateParts[1] + ':00'; // Append seconds for ISO format
+                        const dateStr = dateParts[0] + 'T' + dateParts[1] + ':00';
                         const reportTime = new Date(dateStr);
                         if (!isNaN(reportTime.getTime())) {
                             const diffMs = now - reportTime;
                             const diffMins = Math.floor(diffMs / 60000);
 
-                            // Warning if more than 15 minutes
                             if (diffMins > 15) {
                                 warningHtml = `
                                     <div class="mt-2 text-xs text-red-600 dark:text-red-400 font-bold flex items-center gap-1 bg-red-50 dark:bg-red-900/20 p-1.5 rounded animate-pulse border border-red-200 dark:border-red-800">
@@ -621,8 +756,14 @@
             });
         }
 
-        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
-        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        function showLoading() {
+            const loader = document.getElementById('loadingOverlay');
+            loader.classList.remove('hidden');
+        }
+        function hideLoading() {
+            const loader = document.getElementById('loadingOverlay');
+            loader.classList.add('hidden');
+        }
     </script>
 </body>
 
